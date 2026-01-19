@@ -195,7 +195,8 @@ Face cards = 10 points, Aces = 1, others = face value
                         await self.output("MELDS:\n")
                         for meld in melds:
                             await self.output(f"  {self._render_hand(meld, False)}\n")
-                        await self.output(f"DEADWOOD: {self._render_hand(deadwood, False)}\n")
+                        await self.output("DEADWOOD:\n")
+                        await self.output(f"{self._render_hand(deadwood, False)}\n")
                         continue
 
                     elif cmd == "DRAW DECK":

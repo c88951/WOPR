@@ -241,8 +241,10 @@ Commands:
 
             # Showdown
             await self.output("\n*** SHOWDOWN ***\n\n")
-            await self.output(f"YOUR HAND:  {self._render_hand(self._player_hand)}\n")
-            await self.output(f"WOPR HAND:  {self._render_hand(self._wopr_hand)}\n\n")
+            await self.output("YOUR HAND:\n")
+            await self.output(self._render_hand(self._player_hand) + "\n")
+            await self.output("WOPR HAND:\n")
+            await self.output(self._render_hand(self._wopr_hand) + "\n\n")
 
             player_rank = self._evaluate_hand(self._player_hand)
             wopr_rank = self._evaluate_hand(self._wopr_hand)

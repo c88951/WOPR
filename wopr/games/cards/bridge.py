@@ -222,7 +222,8 @@ Commands: BID, PASS, PLAY, HAND, QUIT
                 hand = self._hands[current]
 
                 if current == 0:
-                    await self.output(f"YOUR HAND: {self._render_hand(hand)}\n")
+                    await self.output("YOUR HAND:\n")
+                    await self.output(f"{self._render_hand(hand)}\n")
                     if trick:
                         trick_str = " ".join(f"[{self._card_str(c)}]" for _, c in trick)
                         await self.output(f"TRICK: {trick_str}\n")

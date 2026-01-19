@@ -432,6 +432,27 @@ This creates all sound effects programmatically (no external audio sources neede
 - Python 3.10+
 - Terminal with Unicode support
 
+### Recommended Terminal Settings
+
+For the best experience, configure your terminal as follows:
+
+| Setting | Recommended |
+|---------|-------------|
+| **Minimum Size** | 100 columns × 35 rows |
+| **Font** | Any monospace font (e.g., Consolas, Monaco, JetBrains Mono) |
+| **Colors** | 256-color or true color support |
+| **Background** | Dark/black background works best |
+
+**Resize your terminal** before starting WOPR - the game looks best at 100×35 or larger. Global Thermonuclear War's world map requires at least 95 columns to display properly.
+
+**Linux/macOS**: Most default terminals work well. For best results:
+```bash
+# Check your current terminal size
+tput cols && tput lines
+```
+
+**Windows**: Use Windows Terminal (recommended) or PowerShell. The classic Command Prompt has limited Unicode support.
+
 ### Using the Install Script (Recommended)
 
 The easiest way to check and install dependencies:
