@@ -37,17 +37,35 @@ This project recreates the iconic WOPR supercomputer from the 1983 film WarGames
 
 ## Quick Start
 
-### Installation
+### Recommended: Use the Install Script
 
 ```bash
-# Clone the repository
 git clone https://github.com/c88951/WOPR.git
 cd WOPR
+python3 install.py
+```
 
-# Install the package (with sound support)
-pip3 install -e ".[audio]"
+The install script will:
+- Check your Python version (requires 3.10+)
+- Show which dependencies are installed, missing, or need upgrading
+- Offer to install any missing required packages
+- Offer to install pygame for sound effects (optional)
 
-# Run WOPR
+### Manual Install (Alternative)
+
+If you prefer to install manually:
+
+```bash
+git clone https://github.com/c88951/WOPR.git
+cd WOPR
+pip3 install textual rich python-chess pyttsx3  # Required
+pip3 install pygame                              # Optional: for sound effects
+python3 -m wopr
+```
+
+### Run the Game
+
+```bash
 python3 -m wopr
 ```
 
@@ -414,20 +432,61 @@ This creates all sound effects programmatically (no external audio sources neede
 - Python 3.10+
 - Terminal with Unicode support
 
-### Dependencies
+### Using the Install Script (Recommended)
+
+The easiest way to check and install dependencies:
+
+```bash
+python3 install.py
+```
+
+The install script will:
+1. **Check Python version** - Verifies you have Python 3.10 or higher
+2. **Check required packages** - Shows what's installed, missing, or needs upgrading
+3. **Check audio packages** - Detects pygame or simpleaudio for sound support
+4. **Interactive install** - Asks before installing each category (required + audio)
+5. **Summary** - Shows final status and how to run the game
+
+Example output:
+```
+Checking required packages...
+
+Installed:
+  [OK] textual: 0.50.1
+  [OK] rich: 13.7.0
+  [X] python-chess: (missing)
+
+Checking audio packages (optional)...
+  [!] No audio package found (pygame or simpleaudio)
+
+------------------------------------------------------------
+
+Install required packages now? [Y/n]: y
+
+Install pygame for sound effects? [Y/n]: y
+```
+
+### Manual Dependency List
+
+If you prefer to install manually:
+
 ```
 textual >= 0.50.0      # TUI framework
 rich >= 13.0.0         # Text formatting
 python-chess >= 1.10   # Chess engine
 pyttsx3 >= 2.90        # Text-to-speech
+pygame >= 2.0.0        # Audio support (optional)
 ```
 
-### Audio Support (Recommended)
+### Audio Support (Optional)
+
+For sound effects, install pygame:
+
 ```bash
-pip3 install -e ".[audio]"
+pip3 install pygame
 ```
 
-This installs `pygame` for sound effects. The game includes synthesized WAV files:
+The game includes synthesized WAV files:
 - **Modem dial** - Authentic DTMF tones and dial sequence
 - **Modem connect** - Classic modem handshake screech
 - **Terminal beep** - Soft notification sound
