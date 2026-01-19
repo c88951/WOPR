@@ -132,16 +132,18 @@ class WOPRApp(App):
 
     async def _get_input(self) -> str:
         """Wait for user input."""
+        # Set up the event first
+        self._pending_input = asyncio.Event()
+        self._input_value = ""
+
+        # Get and prepare input widget
         input_widget = self.query_one("#command-input", Input)
         input_widget.value = ""
 
-        # Small delay to ensure widget is ready
-        await asyncio.sleep(0.05)
-        input_widget.focus()
+        # Wait for UI to be ready, then focus
+        self.call_after_refresh(input_widget.focus)
 
         # Wait for input submission
-        self._pending_input = asyncio.Event()
-        self._input_value = ""
         await self._pending_input.wait()
         return self._input_value
 
