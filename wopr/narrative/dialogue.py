@@ -185,18 +185,88 @@ class WOPRDialogue:
         except ValueError:
             pass
 
-        # Common abbreviations
+        # Common abbreviations and misspellings
         abbreviations = {
+            # Global Thermonuclear War
             "GTW": "GLOBAL THERMONUCLEAR WAR",
             "THERMONUCLEAR": "GLOBAL THERMONUCLEAR WAR",
             "NUKE": "GLOBAL THERMONUCLEAR WAR",
             "WAR": "GLOBAL THERMONUCLEAR WAR",
-            "TTT": "TIC-TAC-TOE",  # Not in list but for learning sequence
+            "NUCLEAR": "GLOBAL THERMONUCLEAR WAR",
+            "NUKES": "GLOBAL THERMONUCLEAR WAR",
+            # Tic-Tac-Toe (for learning sequence)
+            "TTT": "TIC-TAC-TOE",
+            # Black Jack
             "BJ": "BLACK JACK",
             "BLACKJACK": "BLACK JACK",
+            "21": "BLACK JACK",
+            # Poker
+            "POKR": "POKER",
+            "POLER": "POKER",
+            "POKKER": "POKER",
+            # Chess
+            "CHEES": "CHESS",
+            "CHES": "CHESS",
+            # Checkers
+            "CHECKRS": "CHECKERS",
+            "CHEKERS": "CHECKERS",
+            "CHEKKERS": "CHECKERS",
+            "DRAUGHTS": "CHECKERS",
+            # Falken's Maze
+            "FALKENS MAZE": "FALKEN'S MAZE",
+            "FALKEN MAZE": "FALKEN'S MAZE",
+            "FALKENS": "FALKEN'S MAZE",
+            "FALKEN": "FALKEN'S MAZE",
+            "MAZE": "FALKEN'S MAZE",
+            "LABYRINTH": "FALKEN'S MAZE",
+            # Gin Rummy
+            "GIN": "GIN RUMMY",
+            "RUMMY": "GIN RUMMY",
+            "GINRUMMY": "GIN RUMMY",
+            # Hearts
+            "HEART": "HEARTS",
+            # Fighter Combat
+            "FIGHTER": "FIGHTER COMBAT",
+            "DOGFIGHT": "FIGHTER COMBAT",
+            "F15": "FIGHTER COMBAT",
+            "F-15": "FIGHTER COMBAT",
+            # Guerrilla Engagement
+            "GUERILLA": "GUERRILLA ENGAGEMENT",  # Common misspelling
+            "GUERRILA": "GUERRILLA ENGAGEMENT",
+            "GORILLA": "GUERRILLA ENGAGEMENT",  # Very common mistake
+            "INSURGENCY": "GUERRILLA ENGAGEMENT",
+            # Desert Warfare
+            "DESERT": "DESERT WARFARE",
+            "TANKS": "DESERT WARFARE",
+            "ARMOR": "DESERT WARFARE",
+            # Air-to-Ground
+            "AIR TO GROUND": "AIR-TO-GROUND ACTIONS",
+            "AIRTOGROUND": "AIR-TO-GROUND ACTIONS",
+            "A10": "AIR-TO-GROUND ACTIONS",
+            "A-10": "AIR-TO-GROUND ACTIONS",
+            "CAS": "AIR-TO-GROUND ACTIONS",  # Close Air Support
+            # Theaterwide Tactical
+            "TACTICAL": "THEATERWIDE TACTICAL WARFARE",
+            "THEATER": "THEATERWIDE TACTICAL WARFARE",
+            "THEATERWIDE": "THEATERWIDE TACTICAL WARFARE",
+            # Biotoxic
+            "BIOTOXIC": "THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE",
+            "CHEMICAL": "THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE",
+            "NBC": "THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE",
+            "CHEM": "THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE",
         }
         if user_input in abbreviations:
             return abbreviations[user_input]
+
+        # Fuzzy match: check if input is close to any game name (missing apostrophe, etc.)
+        normalized_input = user_input.replace("'", "").replace("-", " ").replace("  ", " ")
+        for game in self.GAME_LIST:
+            normalized_game = game.replace("'", "").replace("-", " ")
+            if normalized_input == normalized_game:
+                return game
+            # Also check if normalized input starts with normalized game word
+            if normalized_game.startswith(normalized_input) and len(normalized_input) >= 3:
+                return game
 
         return None
 
