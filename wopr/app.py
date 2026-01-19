@@ -406,6 +406,17 @@ class WOPRApp(App):
         self._state.transition(GameState.WISDOM)
         await narrative.run_wisdom()
 
+        # Wait for response to "HOW ABOUT A NICE GAME OF CHESS?"
+        response = await self._get_input()
+        await self._output(f"{response}\n")
+
+        # Check if user wants to play chess
+        response_upper = response.strip().upper()
+        yes_responses = {"YES", "Y", "YEAH", "YEP", "SURE", "OK", "OKAY", "FINE", "ALRIGHT", "WHY NOT", "LETS GO", "LET'S GO"}
+        if response_upper in yes_responses or response_upper.startswith("YES") or response_upper.startswith("SURE"):
+            await self._output("\nFINE.\n\n")
+            await self._play_chess()
+
     async def _play_chess(self) -> None:
         """Play Chess."""
         from .games.board.chess import ChessGame
