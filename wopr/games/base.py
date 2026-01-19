@@ -125,6 +125,72 @@ class CardGame(BaseGame):
         """Convert a hand to string representation."""
         return " ".join(self._card_str(card) for card in hand)
 
+    def _render_card_art(self, card: tuple[str, str] | None, hidden: bool = False) -> list[str]:
+        """Render a single card as ASCII art (5 lines)."""
+        if hidden or card is None:
+            return [
+                "┌───────┐",
+                "│░░░░░░░│",
+                "│░░░░░░░│",
+                "│░░░░░░░│",
+                "└───────┘",
+            ]
+
+        rank, suit = card
+        # Handle 10 which is 2 chars
+        if rank == "10":
+            top = f"│{rank}     │"
+            bot = f"│     {rank}│"
+        else:
+            top = f"│{rank}      │"
+            bot = f"│      {rank}│"
+
+        return [
+            "┌───────┐",
+            top,
+            f"│   {suit}   │",
+            bot,
+            "└───────┘",
+        ]
+
+    def _render_hand_art(
+        self,
+        hand: list[tuple[str, str]],
+        numbered: bool = False,
+        hidden_indices: set[int] | None = None
+    ) -> str:
+        """Render a hand as larger ASCII art cards.
+
+        Args:
+            hand: List of cards to render
+            numbered: If True, show position numbers above cards
+            hidden_indices: Set of indices to show as hidden cards
+        """
+        if not hand:
+            return ""
+
+        hidden_indices = hidden_indices or set()
+
+        # Render each card
+        card_renders = []
+        for i, card in enumerate(hand):
+            is_hidden = i in hidden_indices
+            card_renders.append(self._render_card_art(card, hidden=is_hidden))
+
+        # Combine horizontally with spacing
+        lines = []
+
+        # Position numbers if requested
+        if numbered:
+            num_line = "  ".join(f"    {i + 1}    " for i in range(len(hand)))
+            lines.append(num_line)
+
+        for row in range(5):
+            line = "  ".join(render[row] for render in card_renders)
+            lines.append(line)
+
+        return "\n".join(lines)
+
 
 class BoardGame(BaseGame):
     """Base class for board games."""

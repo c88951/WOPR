@@ -110,14 +110,9 @@ Face cards = 10 points, Aces = 1, others = face value
         return sum(self._card_points(c) for c in deadwood)
 
     def _render_hand(self, hand: list[tuple[str, str]], numbered: bool = True) -> str:
-        """Render hand with position numbers."""
-        cards = []
-        for i, card in enumerate(sorted(hand, key=lambda c: (c[1], self._rank_index(c[0])))):
-            if numbered:
-                cards.append(f"{i + 1}:[{self._card_str(card)}]")
-            else:
-                cards.append(f"[{self._card_str(card)}]")
-        return " ".join(cards)
+        """Render hand with position numbers using larger ASCII art."""
+        sorted_hand = sorted(hand, key=lambda c: (c[1], self._rank_index(c[0])))
+        return self._render_hand_art(sorted_hand, numbered=numbered)
 
     def _deal_hands(self) -> None:
         """Deal 10 cards to each player."""

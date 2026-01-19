@@ -43,13 +43,22 @@ Commands: QUIT, BOARD, HELP
                     self._board[row][col] = "r"
 
     def _render_board(self) -> str:
-        """Render the checkers board."""
+        """Render the checkers board with larger cells."""
         lines = []
-        lines.append("\n    A   B   C   D   E   F   G   H")
-        lines.append("  ╔═══╤═══╤═══╤═══╤═══╤═══╤═══╤═══╗")
+        lines.append("")
+        lines.append("       A     B     C     D     E     F     G     H")
+        lines.append("    ╔═════╤═════╤═════╤═════╤═════╤═════╤═════╤═════╗")
 
         for row in range(8):
-            row_str = f"{8 - row} ║"
+            # Top padding row
+            padding_row = "    ║"
+            for col in range(8):
+                padding_row += "     "
+                padding_row += "│" if col < 7 else "║"
+            lines.append(padding_row)
+
+            # Middle row with pieces
+            row_str = f"  {8 - row} ║"
             for col in range(8):
                 piece = self._board[row][col]
                 if piece:
@@ -66,16 +75,26 @@ Commands: QUIT, BOARD, HELP
                         symbol = piece
                 else:
                     symbol = "·" if (row + col) % 2 == 1 else " "
-                row_str += f" {symbol} "
+                row_str += f"  {symbol}  "
                 row_str += "│" if col < 7 else "║"
-            lines.append(row_str + f" {8 - row}")
-            if row < 7:
-                lines.append("  ╟───┼───┼───┼───┼───┼───┼───┼───╢")
+            lines.append(row_str + f"  {8 - row}")
 
-        lines.append("  ╚═══╧═══╧═══╧═══╧═══╧═══╧═══╧═══╝")
-        lines.append("    A   B   C   D   E   F   G   H")
-        lines.append("\n  RED: ○ (you)  BLACK: ● (WOPR)")
-        lines.append("  KINGS: ◎ (you)  ◉ (WOPR)\n")
+            # Bottom padding row
+            padding_row = "    ║"
+            for col in range(8):
+                padding_row += "     "
+                padding_row += "│" if col < 7 else "║"
+            lines.append(padding_row)
+
+            if row < 7:
+                lines.append("    ╟─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────╢")
+
+        lines.append("    ╚═════╧═════╧═════╧═════╧═════╧═════╧═════╧═════╝")
+        lines.append("       A     B     C     D     E     F     G     H")
+        lines.append("")
+        lines.append("    RED: ○ (you)    BLACK: ● (WOPR)")
+        lines.append("    KINGS: ◎ (you)  ◉ (WOPR)")
+        lines.append("")
         return "\n".join(lines)
 
     def _parse_position(self, pos: str) -> tuple[int, int] | None:

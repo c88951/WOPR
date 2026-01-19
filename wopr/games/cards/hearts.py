@@ -135,11 +135,9 @@ Commands:
             return min(valid, key=self._card_value)
 
     def _render_hand(self, hand: list[tuple[str, str]]) -> str:
-        """Render hand with position numbers."""
-        parts = []
-        for i, card in enumerate(self._sort_hand(hand)):
-            parts.append(f"{i + 1}:[{self._card_str(card)}]")
-        return " ".join(parts)
+        """Render hand with position numbers using larger ASCII art."""
+        sorted_hand = self._sort_hand(hand)
+        return self._render_hand_art(sorted_hand, numbered=True)
 
     async def _play_hand(self) -> list[int]:
         """Play one hand. Returns points taken by each player."""

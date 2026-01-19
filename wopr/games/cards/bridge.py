@@ -107,11 +107,8 @@ Commands: BID, PASS, PLAY, HAND, QUIT
         return (level, best_suit)
 
     def _render_hand(self, hand: list[tuple[str, str]]) -> str:
-        """Render hand with position numbers."""
-        parts = []
-        for i, card in enumerate(hand):
-            parts.append(f"{i + 1}:[{self._card_str(card)}]")
-        return " ".join(parts)
+        """Render hand with position numbers using larger ASCII art."""
+        return self._render_hand_art(hand, numbered=True)
 
     async def _bidding_phase(self) -> tuple[int, str, int] | None:
         """Run bidding phase. Returns (level, suit, declarer) or None if passed out."""

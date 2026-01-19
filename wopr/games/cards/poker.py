@@ -106,16 +106,50 @@ Commands:
 
         return (0, ranks)  # High card
 
+    def _render_card(self, card: tuple[str, str]) -> list[str]:
+        """Render a single card as ASCII art lines."""
+        rank, suit = card
+        # Handle 10 which is 2 chars
+        if rank == "10":
+            top = f"│{rank}     │"
+            bot = f"│     {rank}│"
+        else:
+            top = f"│{rank}      │"
+            bot = f"│      {rank}│"
+
+        return [
+            "┌───────┐",
+            top,
+            f"│   {suit}   │",
+            bot,
+            "└───────┘",
+        ]
+
+    def _render_hand_large(self, hand: list[tuple[str, str]], numbered: bool = False) -> str:
+        """Render a hand as larger ASCII art cards."""
+        if not hand:
+            return ""
+
+        # Render each card
+        card_renders = [self._render_card(card) for card in hand]
+
+        # Combine horizontally with spacing
+        lines = []
+
+        # Position numbers if requested
+        if numbered:
+            num_line = "  ".join(f"    {i + 1}    " for i in range(len(hand)))
+            lines.append(num_line)
+
+        for row in range(5):
+            line = "  ".join(render[row] for render in card_renders)
+            lines.append(line)
+
+        return "\n".join(lines)
+
     def _render_hand(self, hand: list[tuple[str, str]], numbered: bool = False) -> str:
-        """Render a hand with optional position numbers."""
-        cards = []
-        for i, card in enumerate(hand):
-            card_str = f"[{self._card_str(card)}]"
-            if numbered:
-                cards.append(f"{i + 1}:{card_str}")
-            else:
-                cards.append(card_str)
-        return " ".join(cards)
+        """Render a hand - now uses large format."""
+        return self._render_hand_large(hand, numbered)
 
     def _deal_hands(self) -> None:
         """Deal fresh hands to both players."""

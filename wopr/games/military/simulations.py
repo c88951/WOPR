@@ -79,10 +79,11 @@ class MilitarySimulation(BaseGame):
 
     async def _play_fighter_combat(self) -> dict[str, Any]:
         """Fighter combat simulation - energy management dogfighting."""
-        await self.output(f"\n{self._game_name}\n")
-        await self.output("=" * len(self._game_name) + "\n\n")
-        await self.output("You are piloting an F-15 Eagle.\n")
-        await self.output("Enemy MIG-29 detected!\n\n")
+        await self.output(f"\n{'═' * 60}\n")
+        await self.output(f"    {self._game_name}\n")
+        await self.output(f"{'═' * 60}\n\n")
+        await self.output("    You are piloting an F-15 Eagle.\n")
+        await self.output("    Enemy MIG-29 detected!\n\n")
 
         energy = 100  # Player's energy state
         enemy_energy = 100
@@ -98,12 +99,21 @@ class MilitarySimulation(BaseGame):
         }
 
         while True:
-            await self.output(f"\n--- TURN {self._turn + 1} ---\n")
-            await self.output(f"YOUR ENERGY: {energy}%  ALTITUDE: {altitude}ft\n")
-            await self.output(f"ENEMY ENERGY: {enemy_energy}%  DISTANCE: {distance}nm\n\n")
+            await self.output(f"\n{'─' * 60}\n")
+            await self.output(f"    TURN {self._turn + 1}\n")
+            await self.output(f"{'─' * 60}\n\n")
+
+            # Energy bars
+            energy_bar = "█" * (energy // 10) + "░" * (10 - energy // 10)
+            enemy_bar = "█" * (enemy_energy // 10) + "░" * (10 - enemy_energy // 10)
+
+            await self.output(f"    YOUR ENERGY:  [{energy_bar}] {energy:3}%\n")
+            await self.output(f"    ALTITUDE:     {altitude:,} ft\n\n")
+            await self.output(f"    ENEMY ENERGY: [{enemy_bar}] {enemy_energy:3}%\n")
+            await self.output(f"    DISTANCE:     {distance} nm\n\n")
 
             for key, (name, desc) in actions.items():
-                await self.output(f"  {key}. {name} - {desc}\n")
+                await self.output(f"      {key}. {name:8} - {desc}\n")
 
             await self.output("\nACTION (or Q to quit): ")
             cmd = (await self._input()).strip().upper()
@@ -162,10 +172,11 @@ class MilitarySimulation(BaseGame):
 
     async def _play_guerrilla(self) -> dict[str, Any]:
         """Guerrilla engagement - hearts and minds."""
-        await self.output(f"\n{self._game_name}\n")
-        await self.output("=" * len(self._game_name) + "\n\n")
-        await self.output("You command counterinsurgency operations.\n")
-        await self.output("Win the population's support while neutralizing threats.\n\n")
+        await self.output(f"\n{'═' * 60}\n")
+        await self.output(f"    {self._game_name}\n")
+        await self.output(f"{'═' * 60}\n\n")
+        await self.output("    You command counterinsurgency operations.\n")
+        await self.output("    Win the population's support while neutralizing threats.\n\n")
 
         population_support = 50  # 0-100
         insurgent_strength = 50  # 0-100
@@ -179,13 +190,19 @@ class MilitarySimulation(BaseGame):
         }
 
         while population_support > 0 and population_support < 100:
-            await self.output(f"\n--- MONTH {self._turn + 1} ---\n")
-            await self.output(f"POPULATION SUPPORT: {population_support}%\n")
-            await self.output(f"INSURGENT STRENGTH: {insurgent_strength}%\n")
-            await self.output(f"RESOURCES: {resources}\n\n")
+            await self.output(f"\n{'─' * 60}\n")
+            await self.output(f"    MONTH {self._turn + 1}\n")
+            await self.output(f"{'─' * 60}\n\n")
+
+            pop_bar = "█" * (population_support // 10) + "░" * (10 - population_support // 10)
+            ins_bar = "█" * (insurgent_strength // 10) + "░" * (10 - insurgent_strength // 10)
+
+            await self.output(f"    POPULATION SUPPORT:  [{pop_bar}] {population_support:3}%\n")
+            await self.output(f"    INSURGENT STRENGTH:  [{ins_bar}] {insurgent_strength:3}%\n")
+            await self.output(f"    RESOURCES:           {resources}\n\n")
 
             for key, (name, desc) in actions.items():
-                await self.output(f"  {key}. {name} - {desc}\n")
+                await self.output(f"      {key}. {name:8} - {desc}\n")
 
             await self.output("\nACTION (or Q to quit): ")
             cmd = (await self._input()).strip()
@@ -240,10 +257,11 @@ class MilitarySimulation(BaseGame):
 
     async def _play_desert_warfare(self) -> dict[str, Any]:
         """Desert warfare - armored maneuver."""
-        await self.output(f"\n{self._game_name}\n")
-        await self.output("=" * len(self._game_name) + "\n\n")
-        await self.output("Command your armored battalion across the desert.\n")
-        await self.output("Capture objectives while preserving your forces.\n\n")
+        await self.output(f"\n{'═' * 60}\n")
+        await self.output(f"    {self._game_name}\n")
+        await self.output(f"{'═' * 60}\n\n")
+        await self.output("    Command your armored battalion across the desert.\n")
+        await self.output("    Capture objectives while preserving your forces.\n\n")
 
         tanks = 12
         enemy_tanks = 15
@@ -251,15 +269,23 @@ class MilitarySimulation(BaseGame):
         total_objectives = 3
 
         while tanks > 0 and objectives < total_objectives:
-            await self.output(f"\n--- PHASE {self._turn + 1} ---\n")
-            await self.output(f"YOUR TANKS: {tanks}\n")
-            await self.output(f"ENEMY TANKS: {enemy_tanks}\n")
-            await self.output(f"OBJECTIVES: {objectives}/{total_objectives}\n\n")
+            await self.output(f"\n{'─' * 60}\n")
+            await self.output(f"    PHASE {self._turn + 1}\n")
+            await self.output(f"{'─' * 60}\n\n")
 
-            await self.output("  1. ADVANCE - Push toward objective\n")
-            await self.output("  2. FLANK - Risky maneuver, high reward\n")
-            await self.output("  3. DEFEND - Hold position\n")
-            await self.output("  4. ARTILLERY - Call fire support\n")
+            # Tank strength visualization
+            tank_bar = "▓" * tanks + "░" * (15 - tanks)
+            enemy_bar = "▓" * enemy_tanks + "░" * (15 - enemy_tanks)
+            obj_bar = "★" * objectives + "☆" * (total_objectives - objectives)
+
+            await self.output(f"    YOUR TANKS:   [{tank_bar}] {tanks:2}\n")
+            await self.output(f"    ENEMY TANKS:  [{enemy_bar}] {enemy_tanks:2}\n")
+            await self.output(f"    OBJECTIVES:   [{obj_bar}] {objectives}/{total_objectives}\n\n")
+
+            await self.output("      1. ADVANCE    - Push toward objective\n")
+            await self.output("      2. FLANK      - Risky maneuver, high reward\n")
+            await self.output("      3. DEFEND     - Hold position\n")
+            await self.output("      4. ARTILLERY  - Call fire support\n")
 
             await self.output("\nORDERS (or Q to quit): ")
             cmd = (await self._input()).strip()
@@ -315,9 +341,10 @@ class MilitarySimulation(BaseGame):
 
     async def _play_air_to_ground(self) -> dict[str, Any]:
         """Air-to-ground actions - strike missions."""
-        await self.output(f"\n{self._game_name}\n")
-        await self.output("=" * len(self._game_name) + "\n\n")
-        await self.output("Plan and execute close air support missions.\n\n")
+        await self.output(f"\n{'═' * 60}\n")
+        await self.output(f"    {self._game_name}\n")
+        await self.output(f"{'═' * 60}\n\n")
+        await self.output("    Plan and execute close air support missions.\n\n")
 
         sorties = 8
         targets_destroyed = 0
@@ -328,14 +355,20 @@ class MilitarySimulation(BaseGame):
 
         while sorties > 0 and targets_destroyed < targets_total:
             target = targets[targets_destroyed]
-            await self.output(f"\n--- MISSION {targets_destroyed + 1} ---\n")
-            await self.output(f"TARGET: {target}\n")
-            await self.output(f"SORTIES REMAINING: {sorties}\n")
-            await self.output(f"TARGETS DESTROYED: {targets_destroyed}/{targets_total}\n\n")
+            await self.output(f"\n{'─' * 60}\n")
+            await self.output(f"    MISSION {targets_destroyed + 1}\n")
+            await self.output(f"{'─' * 60}\n\n")
 
-            await self.output("  1. A-10 LOW PASS - High accuracy, vulnerable to AAA\n")
-            await self.output("  2. F-111 STANDOFF - Medium accuracy, safer\n")
-            await self.output("  3. AC-130 ORBIT - Sustained fire, slow\n")
+            sortie_bar = "◆" * sorties + "◇" * (8 - sorties)
+            target_bar = "✓" * targets_destroyed + "○" * (targets_total - targets_destroyed)
+
+            await self.output(f"    TARGET:            {target}\n\n")
+            await self.output(f"    SORTIES:           [{sortie_bar}] {sorties}\n")
+            await self.output(f"    TARGETS DESTROYED: [{target_bar}] {targets_destroyed}/{targets_total}\n\n")
+
+            await self.output("      1. A-10 LOW PASS   - High accuracy, vulnerable to AAA\n")
+            await self.output("      2. F-111 STANDOFF  - Medium accuracy, safer\n")
+            await self.output("      3. AC-130 ORBIT    - Sustained fire, slow\n")
 
             await self.output("\nSELECT AIRCRAFT (or Q to quit): ")
             cmd = (await self._input()).strip()
@@ -381,21 +414,28 @@ class MilitarySimulation(BaseGame):
 
     async def _play_tactical_warfare(self) -> dict[str, Any]:
         """Theaterwide tactical warfare - campaign."""
-        await self.output(f"\n{self._game_name}\n")
-        await self.output("=" * len(self._game_name) + "\n\n")
-        await self.output("Command the theater campaign.\n")
-        await self.output("Manage multiple fronts and strategic resources.\n\n")
+        await self.output(f"\n{'═' * 60}\n")
+        await self.output(f"    {self._game_name}\n")
+        await self.output(f"{'═' * 60}\n\n")
+        await self.output("    Command the theater campaign.\n")
+        await self.output("    Manage multiple fronts and strategic resources.\n\n")
 
         fronts = {"NORTH": 50, "CENTER": 50, "SOUTH": 50}  # Control percentage
         reserves = 100
         days = 0
 
         while all(v > 0 for v in fronts.values()) and any(v < 100 for v in fronts.values()):
-            await self.output(f"\n--- DAY {days + 1} ---\n")
-            await self.output(f"RESERVES: {reserves}\n")
+            await self.output(f"\n{'─' * 60}\n")
+            await self.output(f"    DAY {days + 1}\n")
+            await self.output(f"{'─' * 60}\n\n")
+
+            reserve_bar = "█" * (reserves // 10) + "░" * (10 - reserves // 10)
+            await self.output(f"    RESERVES: [{reserve_bar}] {reserves:3}\n\n")
+
+            await self.output("    FRONT STATUS:\n")
             for front, control in fronts.items():
-                bar = "█" * (control // 10) + "░" * (10 - control // 10)
-                await self.output(f"{front}: [{bar}] {control}%\n")
+                bar = "█" * (control // 5) + "░" * (20 - control // 5)
+                await self.output(f"      {front:8} [{bar}] {control:3}%\n")
 
             await self.output("\nALLOCATE RESERVES TO FRONT (N/C/S) or Q to quit: ")
             cmd = (await self._input()).strip().upper()
@@ -439,10 +479,11 @@ class MilitarySimulation(BaseGame):
 
     async def _play_biotoxic_warfare(self) -> dict[str, Any]:
         """Biotoxic and chemical warfare - ethical scenarios."""
-        await self.output(f"\n{self._game_name}\n")
-        await self.output("=" * len(self._game_name) + "\n\n")
-        await self.output("This simulation explores the consequences of NBC warfare.\n")
-        await self.output("Your decisions have lasting implications.\n\n")
+        await self.output(f"\n{'═' * 60}\n")
+        await self.output(f"    {self._game_name}\n")
+        await self.output(f"{'═' * 60}\n\n")
+        await self.output("    This simulation explores the consequences of NBC warfare.\n")
+        await self.output("    Your decisions have lasting implications.\n\n")
 
         await asyncio.sleep(1)
 

@@ -107,7 +107,7 @@ class TerminalStyle:
 
         #main-content {{
             background: {self.background};
-            padding: 1;
+            padding: 1 1 1 4;
             height: 1fr;
         }}
 
@@ -131,7 +131,7 @@ class TerminalStyle:
             background: {self.background};
             height: auto;
             width: 100%;
-            padding: 0 1;
+            padding: 0 1 0 4;
         }}
 
         #prompt {{

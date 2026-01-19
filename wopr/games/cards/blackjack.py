@@ -55,13 +55,56 @@ Dealer stands on 17.
 
         return value
 
-    def _render_hand(self, hand: list[tuple[str, str]], hide_first: bool = False) -> str:
-        """Render a hand of cards."""
-        if hide_first and hand:
-            cards = ["[??]"] + [f"[{self._card_str(c)}]" for c in hand[1:]]
+    def _render_card(self, card: tuple[str, str] | None, hidden: bool = False) -> list[str]:
+        """Render a single card as ASCII art lines."""
+        if hidden:
+            return [
+                "┌───────┐",
+                "│░░░░░░░│",
+                "│░░░░░░░│",
+                "│░░░░░░░│",
+                "└───────┘",
+            ]
+        if card is None:
+            return ["         "] * 5
+
+        rank, suit = card
+        # Handle 10 which is 2 chars
+        if rank == "10":
+            top = f"│{rank}     │"
+            bot = f"│     {rank}│"
         else:
-            cards = [f"[{self._card_str(c)}]" for c in hand]
-        return " ".join(cards)
+            top = f"│{rank}      │"
+            bot = f"│      {rank}│"
+
+        return [
+            "┌───────┐",
+            top,
+            f"│   {suit}   │",
+            bot,
+            "└───────┘",
+        ]
+
+    def _render_hand(self, hand: list[tuple[str, str]], hide_first: bool = False) -> str:
+        """Render a hand of cards as ASCII art."""
+        if not hand:
+            return ""
+
+        # Render each card
+        card_renders = []
+        for i, card in enumerate(hand):
+            if hide_first and i == 0:
+                card_renders.append(self._render_card(None, hidden=True))
+            else:
+                card_renders.append(self._render_card(card))
+
+        # Combine horizontally with spacing
+        lines = []
+        for row in range(5):
+            line = "  ".join(render[row] for render in card_renders)
+            lines.append(line)
+
+        return "\n".join(lines)
 
     def _deal_initial(self) -> None:
         """Deal initial hands."""
@@ -71,22 +114,28 @@ Dealer stands on 17.
 
     async def _show_table(self, reveal_dealer: bool = False) -> None:
         """Display the current table state."""
-        await self.output("\n" + "=" * 40 + "\n")
-        await self.output(f"CHIPS: {self._chips}    BET: {self._bet}\n")
-        await self.output("-" * 40 + "\n")
+        await self.output("\n" + "═" * 60 + "\n")
+        await self.output(f"    CHIPS: {self._chips}        BET: {self._bet}\n")
+        await self.output("─" * 60 + "\n\n")
 
         # Dealer's hand
-        await self.output("DEALER: ")
-        await self.output(self._render_hand(self._dealer_hand, hide_first=not reveal_dealer))
+        await self.output("    DEALER")
         if reveal_dealer:
-            await self.output(f"  ({self._hand_value(self._dealer_hand)})")
+            await self.output(f"  (Total: {self._hand_value(self._dealer_hand)})")
         await self.output("\n\n")
+        dealer_cards = self._render_hand(self._dealer_hand, hide_first=not reveal_dealer)
+        for line in dealer_cards.split("\n"):
+            await self.output(f"    {line}\n")
+
+        await self.output("\n" + "─" * 60 + "\n\n")
 
         # Player's hand
-        await self.output("YOU:    ")
-        await self.output(self._render_hand(self._player_hand))
-        await self.output(f"  ({self._hand_value(self._player_hand)})\n")
-        await self.output("=" * 40 + "\n")
+        await self.output(f"    YOU  (Total: {self._hand_value(self._player_hand)})\n\n")
+        player_cards = self._render_hand(self._player_hand)
+        for line in player_cards.split("\n"):
+            await self.output(f"    {line}\n")
+
+        await self.output("\n" + "═" * 60 + "\n")
 
     async def _player_turn(self) -> bool:
         """Handle player's turn. Returns True if player busts."""

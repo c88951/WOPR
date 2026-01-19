@@ -31,8 +31,8 @@ Walls are represented by █
         self,
         output_callback,
         input_callback,
-        width: int = 21,
-        height: int = 15,
+        width: int = 31,
+        height: int = 17,
         **kwargs
     ) -> None:
         super().__init__(output_callback, input_callback, **kwargs)
@@ -83,26 +83,31 @@ Walls are represented by █
             self._maze[self._height - 2][self._width - 3] = " "
 
     def _render_maze(self) -> str:
-        """Render the maze with player and exit."""
+        """Render the maze with player and exit using double-width cells."""
         lines = []
-        lines.append("╔" + "═" * self._width + "╗")
+        # Double-width border
+        lines.append("╔" + "══" * self._width + "╗")
 
         for y in range(self._height):
             row = "║"
             for x in range(self._width):
                 if (x, y) == self._player_pos:
-                    row += "@"
+                    row += "@@"
                 elif (x, y) == self._exit_pos:
-                    row += "E"
+                    row += "EE"
                 elif x == 1 and y == 1:
-                    row += "S"
+                    row += "SS"
+                elif self._maze[y][x] == "█":
+                    row += "██"
                 else:
-                    row += self._maze[y][x]
+                    row += "  "
             row += "║"
             lines.append(row)
 
-        lines.append("╚" + "═" * self._width + "╝")
-        lines.append(f"\nMOVES: {self._moves}    S=START  E=EXIT  @=YOU")
+        lines.append("╚" + "══" * self._width + "╝")
+        lines.append("")
+        lines.append(f"  MOVES: {self._moves}")
+        lines.append("  S = START    E = EXIT    @ = YOU")
         return "\n".join(lines)
 
     def _can_move(self, x: int, y: int) -> bool:
