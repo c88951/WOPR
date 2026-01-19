@@ -4,7 +4,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, VerticalScroll
 from textual.widgets import Static, Input
 from textual.binding import Binding
-from textual import events
+from textual import events, on
 import asyncio
 
 from .config import WOPRConfig, COLOR_SCHEMES, APP_TITLE
@@ -145,9 +145,10 @@ class WOPRApp(App):
         await self._pending_input.wait()
         return self._input_value
 
-    def on_input_submitted(self, event: Input.Submitted) -> None:
+    @on(Input.Submitted, "#command-input")
+    def handle_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
-        if hasattr(self, "_pending_input"):
+        if hasattr(self, "_pending_input") and self._pending_input is not None:
             self._input_value = event.value
             self._pending_input.set()
             event.input.value = ""
