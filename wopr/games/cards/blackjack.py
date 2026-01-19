@@ -6,6 +6,11 @@ import random
 from ..base import CardGame, GameResult
 
 
+class PlayerQuit(Exception):
+    """Raised when player wants to quit the game."""
+    pass
+
+
 class Blackjack(CardGame):
     """Blackjack (21) against WOPR as dealer."""
 
@@ -172,7 +177,7 @@ Dealer stands on 17.
                     await self.output("CANNOT DOUBLE\n")
 
             elif cmd in {"Q", "QUIT"}:
-                raise StopIteration()
+                raise PlayerQuit()
 
             else:
                 await self.output("INVALID COMMAND\n")
@@ -257,7 +262,7 @@ Dealer stands on 17.
                     await self.output("PUSH - TIE\n")
                     self._chips += self._bet
 
-        except StopIteration:
+        except PlayerQuit:
             pass
 
         # Game over

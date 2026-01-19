@@ -6,6 +6,11 @@ import random
 from ..base import CardGame, GameResult
 
 
+class PlayerQuit(Exception):
+    """Raised when player wants to quit the game."""
+    pass
+
+
 class Bridge(CardGame):
     """Simplified Contract Bridge against WOPR."""
 
@@ -126,12 +131,15 @@ Commands: BID, PASS, PLAY, HAND, QUIT
         while passes < 4:
             if bidder == 0:
                 # Player bids
-                await self.output(f"CURRENT BID: {current_bid[0]} {current_bid[1] if current_bid else 'NONE'}\n")
+                if current_bid:
+                    await self.output(f"CURRENT BID: {current_bid[0]} {current_bid[1]}\n")
+                else:
+                    await self.output("CURRENT BID: NONE\n")
                 await self.output("YOUR BID (e.g., '2 HEARTS' or 'PASS'): ")
                 cmd = (await self._input()).strip().upper()
 
                 if cmd in {"QUIT", "Q"}:
-                    raise StopIteration()
+                    raise PlayerQuit()
 
                 if cmd == "PASS":
                     passes += 1
@@ -224,7 +232,7 @@ Commands: BID, PASS, PLAY, HAND, QUIT
                         cmd = (await self._input()).strip()
 
                         if cmd.upper() in {"QUIT", "Q"}:
-                            raise StopIteration()
+                            raise PlayerQuit()
 
                         try:
                             pos = int(cmd) - 1
@@ -314,7 +322,7 @@ Commands: BID, PASS, PLAY, HAND, QUIT
                     self._scores[1 - declaring_team] += penalty
                     await self.output(f"CONTRACT DOWN {tricks_needed - tricks_made}. -{penalty}\n")
 
-        except StopIteration:
+        except PlayerQuit:
             pass
 
         await self.output(f"\nFINAL: NS={self._scores[0]} EW={self._scores[1]}\n")
