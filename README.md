@@ -248,50 +248,90 @@ This entire project was built using [Claude Code](https://claude.ai/claude-code)
 
 **Critical Implementation Notes:**
 
-1. **Async Event Input Pattern** (CRITICAL - follow exactly or input breaks):
+1. **VerticalScroll Focus Issue** (CRITICAL - must disable or mouse clicks break input):
    ```python
+   def compose(self) -> ComposeResult:
+       # CRITICAL: Disable focus on VerticalScroll or mouse clicks steal focus from Input
+       scroll = VerticalScroll(
+           Static("", id="terminal-output"),
+           id="main-content"
+       )
+       scroll.can_focus = False  # Prevents mouse clicks from stealing focus
+       yield scroll
+
+       yield Horizontal(
+           Static("> ", id="prompt"),
+           Input(id="command-input"),
+           id="input-container"
+       )
+   ```
+
+2. **Async Event Input Pattern** (CRITICAL - follow exactly or input breaks):
+   ```python
+   def __init__(self, ...):
+       # MUST initialize these in __init__, not dynamically
+       self._pending_input: asyncio.Event | None = None
+       self._input_value: str = ""
+
+   def _do_focus(self, widget: Input) -> None:
+       """Helper called via set_timer to focus input."""
+       if not widget.has_focus:
+           self.set_focus(widget)
+
    async def _get_input(self) -> str:
-       # IMPORTANT: Clear previous state first to avoid stale events
+       # Clear previous state FIRST
        self._pending_input = None
        self._input_value = ""
 
        input_widget = self.query_one("#command-input", Input)
        input_widget.value = ""
 
-       # Create FRESH event for this input call
+       # Create FRESH event
        self._pending_input = asyncio.Event()
 
-       # Focus after UI refresh (no sleep delays!)
-       self.call_after_refresh(input_widget.focus)
+       # CRITICAL: Use set_timer, NOT call_after_refresh or asyncio.sleep
+       # - call_after_refresh waits for screen refresh that may not happen
+       # - asyncio.sleep can interfere with Textual's event loop
+       # Use multiple timers for reliability
+       self.set_timer(0.1, lambda: self._do_focus(input_widget))
+       self.set_timer(0.2, lambda: self._do_focus(input_widget))
 
        await self._pending_input.wait()
 
-       # IMPORTANT: Store result and clear event before returning
+       # Clear event IMMEDIATELY after use
        result = self._input_value
-       self._pending_input = None  # Prevents stale event issues
+       self._pending_input = None
        return result
 
    @on(Input.Submitted, "#command-input")
    def handle_input_submitted(self, event: Input.Submitted) -> None:
-       # Check is_set() to prevent double-triggering
-       if (hasattr(self, "_pending_input") and
-           self._pending_input is not None and
+       if (self._pending_input is not None and
            not self._pending_input.is_set()):
            self._input_value = event.value
            self._pending_input.set()
        event.input.value = ""
    ```
 
-2. **Common Async Event Pitfalls to Avoid:**
-   - NOT clearing the event to `None` after use → stale events trigger on next input
-   - Adding `sleep()` delays → breaks title screen timing
-   - Not checking `is_set()` → double-triggering issues
-   - Creating event after focus → race conditions
+3. **Common Pitfalls to Avoid:**
+   - `VerticalScroll.can_focus = True` (default) → mouse clicks steal focus, app freezes
+   - NOT clearing `_pending_input = None` after use → stale events on next input
+   - Using `call_after_refresh()` for focus → may never fire after long sequences
+   - Using `asyncio.sleep()` in Textual → interferes with event loop
+   - NOT initializing `_pending_input` in `__init__` → attribute errors
 
-3. Audio manager tries pygame first, falls back to simpleaudio
-4. All games inherit from a base Game class with async `play()` method
-5. Sound files are synthesized WAVs (numpy/scipy) - no external audio files needed
-6. Use `VerticalScroll` for main content, `Horizontal` for input container
+4. **Debug Logging** (Textual captures stderr):
+   ```python
+   # Textual captures stderr for terminal control. Write debug to file:
+   def _debug_log(self, msg: str) -> None:
+       if self._debug:
+           with open("/tmp/wopr_debug.log", "a") as f:
+               f.write(f"{msg}\n")
+   ```
+
+5. Audio manager tries pygame first, falls back to simpleaudio
+6. All games inherit from a base Game class with async `play()` method
+7. Sound files are synthesized WAVs (numpy/scipy) - no external audio files needed
+8. Use `VerticalScroll` for main content, `Horizontal` for input container
 
 ### Setup
 1. Install Claude Code CLI

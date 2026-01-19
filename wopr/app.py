@@ -37,6 +37,7 @@ class WOPRApp(App):
         no_voice: bool = False,
         fast_mode: bool = False,
         start_game: str | None = None,
+        debug: bool = False,
     ) -> None:
         super().__init__()
 
@@ -79,6 +80,11 @@ class WOPRApp(App):
         self._output_buffer: list[str] = []
         self._current_game = None
 
+        # Input handling state - MUST be initialized here
+        self._pending_input: asyncio.Event | None = None
+        self._input_value: str = ""
+        self._debug = debug
+
         # Set up CSS
         self.CSS = self._style.get_css()
 
@@ -88,10 +94,14 @@ class WOPRApp(App):
             f"  {APP_TITLE}\n  NORAD COMPUTER SYSTEM",
             id="header"
         )
-        yield VerticalScroll(
+        # Disable focus on scroll container - mouse clicks were stealing focus from Input
+        scroll = VerticalScroll(
             Static("", id="terminal-output"),
             id="main-content"
         )
+        scroll.can_focus = False
+        yield scroll
+
         yield Horizontal(
             Static("> ", id="prompt"),
             Input(id="command-input", classes="terminal-input"),
@@ -101,6 +111,12 @@ class WOPRApp(App):
 
     def on_mount(self) -> None:
         """Initialize the application when mounted."""
+        # Clear debug log on start
+        if self._debug:
+            with open("/tmp/wopr_debug.log", "w") as f:
+                f.write("=== WOPR Debug Log ===\n")
+        self._debug_log("on_mount called")
+
         # Start voice synthesis worker
         if self._voice:
             self._voice.start()
@@ -130,40 +146,95 @@ class WOPRApp(App):
         output_widget = self.query_one("#terminal-output", Static)
         output_widget.update("")
 
+    def _debug_log(self, msg: str) -> None:
+        """Write debug message to file if debug mode enabled.
+
+        Note: Textual captures stderr, so we must write directly to a file.
+        """
+        if getattr(self, '_debug', False):
+            import datetime
+            timestamp = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
+            with open("/tmp/wopr_debug.log", "a") as f:
+                f.write(f"[{timestamp}] {msg}\n")
+                f.flush()
+
+    def _do_focus(self, widget: Input) -> None:
+        """Helper to focus input widget - called via set_timer."""
+        # Skip if already focused
+        if widget.has_focus:
+            self._debug_log(f"_do_focus: already focused")
+            return
+
+        self._debug_log(f"_do_focus: id={widget.id}, current_focus={self.focused}")
+
+        # Use set_focus which is more reliable
+        self.set_focus(widget)
+        self._debug_log(f"  after set_focus: app.focused={self.focused}")
+
     async def _get_input(self) -> str:
-        """Wait for user input."""
-        # Clear any previous state
+        """Wait for user input.
+
+        CRITICAL: This method uses asyncio.Event for synchronization.
+        The event MUST be cleared to None before AND after use to prevent
+        stale events from interfering with subsequent input calls.
+        """
+        self._debug_log("_get_input START")
+
+        # Clear any previous state FIRST
         self._pending_input = None
         self._input_value = ""
 
         # Get and prepare input widget
         input_widget = self.query_one("#command-input", Input)
         input_widget.value = ""
+        self._debug_log(f"Input widget ready, current focus={self.focused}")
 
         # Create fresh event for this input
         self._pending_input = asyncio.Event()
+        self._debug_log("Event created")
 
-        # Wait for UI to be ready, then focus
-        self.call_after_refresh(input_widget.focus)
+        # Schedule focus with a longer delay to ensure any pending scroll operations
+        # have completed. scroll_end() in _output() can steal focus.
+        # Use multiple attempts to ensure focus is acquired.
+        self.set_timer(0.1, lambda: self._do_focus(input_widget))
+        self.set_timer(0.2, lambda: self._do_focus(input_widget))
+        self._debug_log("Focus timer scheduled")
 
         # Wait for input submission
+        self._debug_log("Waiting for input...")
         await self._pending_input.wait()
+        self._debug_log(f"Input received: '{self._input_value}'")
 
-        # Store result and clear event
+        # Store result and clear event IMMEDIATELY
         result = self._input_value
         self._pending_input = None
+        self._debug_log("_get_input END")
         return result
 
     @on(Input.Submitted, "#command-input")
     def handle_input_submitted(self, event: Input.Submitted) -> None:
-        """Handle input submission."""
-        if hasattr(self, "_pending_input") and self._pending_input is not None and not self._pending_input.is_set():
+        """Handle input submission.
+
+        CRITICAL: Only process if there's a pending input event that
+        hasn't been set yet. This prevents stale events and double-triggers.
+        """
+        self._debug_log(f"handle_input_submitted: value='{event.value}', pending={self._pending_input is not None}")
+
+        # Check if we have a valid, unset pending input event
+        if (self._pending_input is not None and
+            not self._pending_input.is_set()):
             self._input_value = event.value
             self._pending_input.set()
+            self._debug_log("Event SET")
+        else:
+            self._debug_log("Event IGNORED (no pending or already set)")
+        # Always clear the input widget
         event.input.value = ""
 
     async def _run_narrative(self) -> None:
         """Run the main narrative flow."""
+        self._debug_log("_run_narrative START")
+
         # Initialize narrative sequences
         typing_speed = (
             0 if not self._config.display.animations
@@ -180,17 +251,22 @@ class WOPRApp(App):
         # Title screen
         if not self._config.gameplay.skip_intro:
             await self._show_title_screen()
+            self._debug_log("Title screen COMPLETE")
 
         # State: DIAL_UP
         self._state.transition(GameState.DIAL_UP)
+        self._debug_log("Starting dialup sequence")
         await narrative.run_full_intro()
+        self._debug_log("Dialup sequence COMPLETE")
 
         # State: CONNECTED -> LOGIN
         self._state.transition(GameState.CONNECTED)
         self._state.transition(GameState.LOGIN)
+        self._debug_log("Entering login loop")
 
         # Login loop
         while True:
+            self._debug_log("Showing LOGON prompt")
             await self._output("LOGON: ")
             username = await self._get_input()
             await self._output(f"{username}\n")
@@ -219,6 +295,7 @@ class WOPRApp(App):
 
     async def _show_title_screen(self) -> None:
         """Display the title screen."""
+        self._debug_log("_show_title_screen START")
         title = """
 ██╗    ██╗ ██████╗ ██████╗ ██████╗
 ██║    ██║██╔═══██╗██╔══██╗██╔══██╗
@@ -445,5 +522,6 @@ def run_app(
         no_voice=no_voice,
         fast_mode=fast_mode,
         start_game=start_game,
+        debug=debug,
     )
     app.run()
