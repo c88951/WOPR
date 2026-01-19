@@ -318,6 +318,11 @@ class WOPRApp(App):
         """Main game selection loop."""
         while True:
             user_input = await self._get_input()
+
+            # Skip empty input (e.g., user just pressing Enter)
+            if not user_input.strip():
+                continue
+
             await self._output(f"{user_input}\n")
 
             game, suggest_chess = await narrative.handle_game_selection(user_input)
@@ -367,8 +372,8 @@ class WOPRApp(App):
             # Military simulations and other games
             await self._play_military_sim(game_name)
 
-        await self._output("\n[GAME ENDED - PRESS ENTER TO CONTINUE]\n")
-        await self._get_input()
+        # Brief pause before returning to menu (no input required)
+        await self._output("\n")
 
     async def _play_gtw(self, narrative: NarrativeSequences) -> None:
         """Play Global Thermonuclear War."""

@@ -7,6 +7,11 @@ from collections import defaultdict
 from ..base import CardGame, GameResult
 
 
+class PlayerQuit(Exception):
+    """Raised when player wants to quit the game."""
+    pass
+
+
 class Hearts(CardGame):
     """Hearts - four player game with WOPR controlling 3 opponents."""
 
@@ -135,11 +140,9 @@ Commands:
             return min(valid, key=self._card_value)
 
     def _render_hand(self, hand: list[tuple[str, str]]) -> str:
-        """Render hand with position numbers."""
-        parts = []
-        for i, card in enumerate(self._sort_hand(hand)):
-            parts.append(f"{i + 1}:[{self._card_str(card)}]")
-        return " ".join(parts)
+        """Render hand with position numbers using larger ASCII art."""
+        sorted_hand = self._sort_hand(hand)
+        return self._render_hand_art(sorted_hand, numbered=True)
 
     async def _play_hand(self) -> list[int]:
         """Play one hand. Returns points taken by each player."""
@@ -177,7 +180,7 @@ Commands:
                         cmd = (await self._input()).strip().upper()
 
                         if cmd in {"QUIT", "Q"}:
-                            raise StopIteration()
+                            raise PlayerQuit()
 
                         if cmd == "HAND":
                             await self.output(f"{self._render_hand(self._hands[0])}\n")
@@ -265,7 +268,7 @@ Commands:
                 await self.output(f"YOU: {points[0]}  WOPR-A: {points[1]}  ")
                 await self.output(f"WOPR-B: {points[2]}  WOPR-C: {points[3]}\n")
 
-        except StopIteration:
+        except PlayerQuit:
             pass
 
         # Determine winner

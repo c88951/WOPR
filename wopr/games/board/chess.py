@@ -55,17 +55,26 @@ Commands: QUIT, RESIGN, BOARD, HELP
         self._use_unicode = True
 
     def _render_board(self) -> str:
-        """Render the chess board as ASCII."""
+        """Render the chess board as ASCII with larger cells."""
         if not self._board:
             return ""
 
         pieces = self.PIECES if self._use_unicode else self.ASCII_PIECES
         lines = []
-        lines.append("\n    a   b   c   d   e   f   g   h")
-        lines.append("  ╔═══╤═══╤═══╤═══╤═══╤═══╤═══╤═══╗")
+        lines.append("")
+        lines.append("       a     b     c     d     e     f     g     h")
+        lines.append("    ╔═════╤═════╤═════╤═════╤═════╤═════╤═════╤═════╗")
 
         for rank in range(7, -1, -1):
-            row = f"{rank + 1} ║"
+            # Top of cell row (empty padding)
+            padding_row = "    ║"
+            for file in range(8):
+                padding_row += "     "
+                padding_row += "│" if file < 7 else "║"
+            lines.append(padding_row)
+
+            # Middle row with piece
+            row = f"  {rank + 1} ║"
             for file in range(8):
                 square = chess.square(file, rank)
                 piece = self._board.piece_at(square)
@@ -74,14 +83,23 @@ Commands: QUIT, RESIGN, BOARD, HELP
                 else:
                     # Checkerboard pattern
                     symbol = "·" if (rank + file) % 2 == 0 else " "
-                row += f" {symbol} "
+                row += f"  {symbol}  "
                 row += "│" if file < 7 else "║"
-            lines.append(row + f" {rank + 1}")
-            if rank > 0:
-                lines.append("  ╟───┼───┼───┼───┼───┼───┼───┼───╢")
+            lines.append(row + f"  {rank + 1}")
 
-        lines.append("  ╚═══╧═══╧═══╧═══╧═══╧═══╧═══╧═══╝")
-        lines.append("    a   b   c   d   e   f   g   h\n")
+            # Bottom of cell row (empty padding)
+            padding_row = "    ║"
+            for file in range(8):
+                padding_row += "     "
+                padding_row += "│" if file < 7 else "║"
+            lines.append(padding_row)
+
+            if rank > 0:
+                lines.append("    ╟─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────╢")
+
+        lines.append("    ╚═════╧═════╧═════╧═════╧═════╧═════╧═════╧═════╝")
+        lines.append("       a     b     c     d     e     f     g     h")
+        lines.append("")
         return "\n".join(lines)
 
     def _get_wopr_move(self) -> chess.Move | None:

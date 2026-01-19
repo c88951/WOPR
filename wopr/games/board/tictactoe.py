@@ -28,15 +28,22 @@ Win by getting three in a row horizontally, vertically, or diagonally.
         self._computer = "O"
 
     def _render_board(self) -> str:
-        """Render the tic-tac-toe board."""
+        """Render the tic-tac-toe board with larger cells."""
         lines = []
-        lines.append("     1   2   3")
-        lines.append("   ┌───┬───┬───┐")
+        lines.append("")
+        lines.append("          1         2         3")
+        lines.append("     ┌─────────┬─────────┬─────────┐")
         for i, row in enumerate(self._board):
-            lines.append(f" {i + 1} │ {row[0]} │ {row[1]} │ {row[2]} │")
+            # Top padding
+            lines.append("     │         │         │         │")
+            # Middle row with X or O
+            lines.append(f"  {i + 1}  │    {row[0]}    │    {row[1]}    │    {row[2]}    │")
+            # Bottom padding
+            lines.append("     │         │         │         │")
             if i < 2:
-                lines.append("   ├───┼───┼───┤")
-        lines.append("   └───┴───┴───┘")
+                lines.append("     ├─────────┼─────────┼─────────┤")
+        lines.append("     └─────────┴─────────┴─────────┘")
+        lines.append("")
         return "\n".join(lines)
 
     def _check_winner(self) -> str | None:
@@ -176,15 +183,21 @@ Win by getting three in a row horizontally, vertically, or diagonally.
 class TicTacToeLearning:
     """Demonstrates WOPR learning that tic-tac-toe is unwinnable."""
 
-    # All possible board states for display
+    # All possible board states for display (larger format)
     BOARD_TEMPLATE = """
-   │   │
- {0} │ {1} │ {2}
-───┼───┼───
- {3} │ {4} │ {5}
-───┼───┼───
- {6} │ {7} │ {8}
-   │   │
+    ┌─────────┬─────────┬─────────┐
+    │         │         │         │
+    │    {0}    │    {1}    │    {2}    │
+    │         │         │         │
+    ├─────────┼─────────┼─────────┤
+    │         │         │         │
+    │    {3}    │    {4}    │    {5}    │
+    │         │         │         │
+    ├─────────┼─────────┼─────────┤
+    │         │         │         │
+    │    {6}    │    {7}    │    {8}    │
+    │         │         │         │
+    └─────────┴─────────┴─────────┘
 """
 
     def __init__(self, output_callback: Callable[[str], Awaitable[None]]) -> None:
@@ -211,12 +224,12 @@ class TicTacToeLearning:
 
             # Display board briefly
             board_str = self.BOARD_TEMPLATE.format(*board)
-            await self._output(f"\033[10A{board_str}")  # Move cursor up and overwrite
+            await self._output(f"\033[15A{board_str}")  # Move cursor up and overwrite
             await asyncio.sleep(0.1)
             games_shown += 1
 
         # Final analysis
-        await self._output("\n" * 8)  # Clear space
+        await self._output("\n" * 14)  # Clear space
         await self._output("GAMES ANALYZED: 255,168\n")
         await asyncio.sleep(0.3)
         await self._output("OPTIMAL GAMES END IN DRAW: 100%\n")
