@@ -184,7 +184,7 @@ Commands: QUIT, RESIGN, BOARD, HELP
         """Play the game."""
         if not CHESS_AVAILABLE:
             await self.output("\nCHESS MODULE NOT AVAILABLE\n")
-            await self.output("Install with: pip install python-chess\n")
+            await self.output("Install with: pip3 install python-chess\n")
             return {"result": GameResult.QUIT}
 
         await self.show_instructions()

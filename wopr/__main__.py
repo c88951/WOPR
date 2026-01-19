@@ -1,4 +1,4 @@
-"""Entry point for WOPR: python -m wopr"""
+"""Entry point for WOPR: python3 -m wopr"""
 
 import argparse
 import sys
