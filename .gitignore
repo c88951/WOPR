@@ -70,5 +70,5 @@ venv.bak/
 .DS_Store
 
 # Project specific
-*.wav
 ~/.wopr/
+generate_sounds.py
