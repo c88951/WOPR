@@ -108,6 +108,7 @@ class TerminalStyle:
         #main-content {{
             background: {self.background};
             padding: 1;
+            height: 1fr;
         }}
 
         #status-bar {{
@@ -128,16 +129,16 @@ class TerminalStyle:
 
         #input-container {{
             background: {self.background};
-            dock: bottom;
-            height: 1;
+            height: auto;
             width: 100%;
+            padding: 0 1;
         }}
 
         #prompt {{
             background: {self.background};
             color: {self.bright};
             width: auto;
-            min-width: 2;
+            height: auto;
         }}
 
         #command-input {{
@@ -145,7 +146,8 @@ class TerminalStyle:
             color: {self.bright};
             border: none;
             width: 1fr;
-            height: 1;
+            height: auto;
+            padding: 0;
         }}
         """
 
