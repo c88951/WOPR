@@ -247,24 +247,47 @@ This entire project was built using [Claude Code](https://claude.ai/claude-code)
 - **Config**: TOML files with tomli/tomllib
 
 **Critical Implementation Notes:**
-1. **Input handling pattern** (this is tricky - follow exactly):
+
+1. **Async Event Input Pattern** (CRITICAL - follow exactly or input breaks):
    ```python
    async def _get_input(self) -> str:
-       self._pending_input = asyncio.Event()  # Set up event FIRST
+       # IMPORTANT: Clear previous state first to avoid stale events
+       self._pending_input = None
        self._input_value = ""
+
        input_widget = self.query_one("#command-input", Input)
        input_widget.value = ""
-       self.call_after_refresh(input_widget.focus)  # Focus AFTER refresh
+
+       # Create FRESH event for this input call
+       self._pending_input = asyncio.Event()
+
+       # Focus after UI refresh (no sleep delays!)
+       self.call_after_refresh(input_widget.focus)
+
        await self._pending_input.wait()
-       return self._input_value
+
+       # IMPORTANT: Store result and clear event before returning
+       result = self._input_value
+       self._pending_input = None  # Prevents stale event issues
+       return result
 
    @on(Input.Submitted, "#command-input")
    def handle_input_submitted(self, event: Input.Submitted) -> None:
-       if hasattr(self, "_pending_input") and self._pending_input is not None:
+       # Check is_set() to prevent double-triggering
+       if (hasattr(self, "_pending_input") and
+           self._pending_input is not None and
+           not self._pending_input.is_set()):
            self._input_value = event.value
            self._pending_input.set()
+       event.input.value = ""
    ```
-2. **Do NOT add sleep delays** to input handling - it breaks the title screen
+
+2. **Common Async Event Pitfalls to Avoid:**
+   - NOT clearing the event to `None` after use → stale events trigger on next input
+   - Adding `sleep()` delays → breaks title screen timing
+   - Not checking `is_set()` → double-triggering issues
+   - Creating event after focus → race conditions
+
 3. Audio manager tries pygame first, falls back to simpleaudio
 4. All games inherit from a base Game class with async `play()` method
 5. Sound files are synthesized WAVs (numpy/scipy) - no external audio files needed
