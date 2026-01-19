@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "wopr"
+version = "1.0.0"
+description = "A faithful Python recreation of the WOPR computer from WarGames (1983)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "WOPR Project" }
+]
+keywords = ["wargames", "wopr", "terminal", "game", "retro"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment",
+]
+
+dependencies = [
+    "textual>=0.50.0",
+    "rich>=13.0.0",
+    "python-chess>=1.10",
+    "pyttsx3>=2.90",
+    "tomli>=2.0.0; python_version < '3.11'",
+]
+
+[project.optional-dependencies]
+audio = [
+    "simpleaudio>=1.0.4",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+]
+
+[project.scripts]
+wopr = "wopr.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/wopr-project/wopr"
+
+[tool.hatch.build.targets.wheel]
+packages = ["wopr"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

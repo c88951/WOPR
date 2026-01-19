@@ -1,0 +1,45 @@
+{
+  "greetings": {
+    "professor_falken": "GREETINGS PROFESSOR FALKEN.",
+    "generic": "GREETINGS."
+  },
+  "prompts": {
+    "play_game": "SHALL WE PLAY A GAME?",
+    "prefer_chess": "WOULDN'T YOU PREFER A GOOD GAME OF CHESS?",
+    "which_side": "WHICH SIDE DO YOU WANT?",
+    "list_games": "LIST GAMES"
+  },
+  "responses": {
+    "fine": "FINE.",
+    "invalid_login": "IDENTIFICATION NOT RECOGNIZED",
+    "command_not_recognized": "COMMAND NOT RECOGNIZED"
+  },
+  "wisdom": {
+    "strange_game": "A STRANGE GAME.",
+    "winning_move": "THE ONLY WINNING MOVE IS NOT TO PLAY.",
+    "nice_chess": "HOW ABOUT A NICE GAME OF CHESS?"
+  },
+  "game_over": {
+    "winner_none": "WINNER: NONE",
+    "you_win": "YOU WIN",
+    "wopr_wins": "WOPR WINS",
+    "draw": "DRAW"
+  },
+  "games": [
+    "FALKEN'S MAZE",
+    "BLACK JACK",
+    "GIN RUMMY",
+    "HEARTS",
+    "BRIDGE",
+    "CHECKERS",
+    "CHESS",
+    "POKER",
+    "FIGHTER COMBAT",
+    "GUERRILLA ENGAGEMENT",
+    "DESERT WARFARE",
+    "AIR-TO-GROUND ACTIONS",
+    "THEATERWIDE TACTICAL WARFARE",
+    "THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE",
+    "GLOBAL THERMONUCLEAR WAR"
+  ]
+}
