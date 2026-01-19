@@ -43,11 +43,11 @@ This project recreates the iconic WOPR supercomputer from the 1983 film WarGames
 git clone https://github.com/c88951/WOPR.git
 cd WOPR
 
-# Install the package
-pip install -e .
+# Install the package (with sound support)
+pip3 install -e ".[audio]"
 
 # Run WOPR
-python -m wopr
+python3 -m wopr
 ```
 
 ### The Login
@@ -69,42 +69,42 @@ SHALL WE PLAY A GAME?
 
 ### Full Experience (Recommended for first-time)
 ```bash
-python -m wopr
+python3 -m wopr
 ```
 Includes modem dial-up animation, typing effects, and the complete narrative.
 
 ### Quick Start (Skip Intro)
 ```bash
-python -m wopr --skip-intro
+python3 -m wopr --skip-intro
 ```
 Jumps past the modem connection sequence.
 
 ### Fast Mode (No Animations)
 ```bash
-python -m wopr --fast
+python3 -m wopr --fast
 ```
 Disables typing animations for faster interaction.
 
 ### Silent Mode
 ```bash
-python -m wopr --no-sound      # Disable all audio
-python -m wopr --no-voice      # Disable voice synthesis only
+python3 -m wopr --no-sound      # Disable all audio
+python3 -m wopr --no-voice      # Disable voice synthesis only
 ```
 
 ### Jump to a Specific Game
 ```bash
-python -m wopr --game "CHESS"
-python -m wopr --game "GLOBAL THERMONUCLEAR WAR"
+python3 -m wopr --game "CHESS"
+python3 -m wopr --game "GLOBAL THERMONUCLEAR WAR"
 ```
 
 ### Combine Options
 ```bash
-python -m wopr --fast --skip-intro --no-sound
+python3 -m wopr --fast --skip-intro --no-sound
 ```
 
 ### All Command Line Options
 ```
-python -m wopr [OPTIONS]
+python3 -m wopr [OPTIONS]
 
 Options:
   --skip-intro    Skip the modem dialup sequence
@@ -287,7 +287,7 @@ WOPR/
 
 ### Running Tests
 ```bash
-pip install -e ".[dev]"
+pip3 install -e ".[dev]"
 python -m pytest tests/ -v
 ```
 
@@ -313,7 +313,7 @@ simpleaudio >= 1.0.4   # Sound effects
 
 Install with audio support:
 ```bash
-pip install -e ".[audio]"
+pip3 install -e ".[audio]"
 ```
 
 ---
