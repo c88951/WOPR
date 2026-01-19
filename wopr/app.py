@@ -132,28 +132,35 @@ class WOPRApp(App):
 
     async def _get_input(self) -> str:
         """Wait for user input."""
-        # Set up the event first
-        self._pending_input = asyncio.Event()
+        # Clear any previous state
+        self._pending_input = None
         self._input_value = ""
 
         # Get and prepare input widget
         input_widget = self.query_one("#command-input", Input)
         input_widget.value = ""
 
+        # Create fresh event for this input
+        self._pending_input = asyncio.Event()
+
         # Wait for UI to be ready, then focus
         self.call_after_refresh(input_widget.focus)
 
         # Wait for input submission
         await self._pending_input.wait()
-        return self._input_value
+
+        # Store result and clear event
+        result = self._input_value
+        self._pending_input = None
+        return result
 
     @on(Input.Submitted, "#command-input")
     def handle_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
-        if hasattr(self, "_pending_input") and self._pending_input is not None:
+        if hasattr(self, "_pending_input") and self._pending_input is not None and not self._pending_input.is_set():
             self._input_value = event.value
             self._pending_input.set()
-            event.input.value = ""
+        event.input.value = ""
 
     async def _run_narrative(self) -> None:
         """Run the main narrative flow."""
