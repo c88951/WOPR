@@ -183,56 +183,62 @@ Win by getting three in a row horizontally, vertically, or diagonally.
 class TicTacToeLearning:
     """Demonstrates WOPR learning that tic-tac-toe is unwinnable."""
 
-    # All possible board states for display (larger format)
-    BOARD_TEMPLATE = """
-    ┌─────────┬─────────┬─────────┐
-    │         │         │         │
-    │    {0}    │    {1}    │    {2}    │
-    │         │         │         │
-    ├─────────┼─────────┼─────────┤
-    │         │         │         │
-    │    {3}    │    {4}    │    {5}    │
-    │         │         │         │
-    ├─────────┼─────────┼─────────┤
-    │         │         │         │
-    │    {6}    │    {7}    │    {8}    │
-    │         │         │         │
-    └─────────┴─────────┴─────────┘
-"""
-
     def __init__(self, output_callback: Callable[[str], Awaitable[None]]) -> None:
         self._output = output_callback
 
+    def _render_mini_board(self, board: list[str]) -> str:
+        """Render a compact 3x3 board for rapid display."""
+        return (
+            f" {board[0]} | {board[1]} | {board[2]} \n"
+            f"---+---+---\n"
+            f" {board[3]} | {board[4]} | {board[5]} \n"
+            f"---+---+---\n"
+            f" {board[6]} | {board[7]} | {board[8]} \n"
+        )
+
     async def run_demonstration(self) -> None:
         """Run the rapid tic-tac-toe learning demonstration."""
-        await self._output("\nANALYZING TIC-TAC-TOE...\n\n")
+        await self._output("\nANALYZING TIC-TAC-TOE...\n")
+        await self._output("=" * 50 + "\n\n")
         await asyncio.sleep(0.5)
 
-        # Show rapid game iterations
-        games_shown = 0
-        max_games = 20
+        # Show a few sample games with outcomes
+        sample_games = [
+            # Game 1: X wins (but this is suboptimal play)
+            (["X", "O", "X", "O", "X", " ", "X", " ", "O"], "X WINS"),
+            # Game 2: O wins
+            (["X", "X", "O", " ", "O", "X", "O", " ", " "], "O WINS"),
+            # Game 3: Draw (optimal play)
+            (["X", "O", "X", "X", "O", "O", "O", "X", "X"], "DRAW"),
+            # Game 4: Draw
+            (["O", "X", "O", "X", "X", "O", "X", "O", "X"], "DRAW"),
+            # Game 5: Draw
+            (["X", "O", "X", "O", "O", "X", "X", "X", "O"], "DRAW"),
+        ]
 
-        for _ in range(max_games):
-            board = [" "] * 9
-            moves_x = random.sample(range(9), 4 + random.randint(0, 1))
-            moves_o = random.sample([i for i in range(9) if i not in moves_x], 4)
+        await self._output("SAMPLE GAMES:\n\n")
 
-            for i, (x, o) in enumerate(zip(moves_x, moves_o)):
-                board[x] = "X"
-                if i < len(moves_o):
-                    board[o] = "O"
+        for i, (board, result) in enumerate(sample_games):
+            await self._output(f"Game {i + 1}:        Result: {result}\n")
+            await self._output(self._render_mini_board(board))
+            await self._output("\n")
+            await asyncio.sleep(0.3)
 
-            # Display board briefly
-            board_str = self.BOARD_TEMPLATE.format(*board)
-            await self._output(f"\033[15A{board_str}")  # Move cursor up and overwrite
-            await asyncio.sleep(0.1)
-            games_shown += 1
+        # Rapid analysis counter
+        await self._output("ANALYZING ALL POSSIBLE GAMES...\n\n")
+        game_counts = [1000, 5000, 25000, 100000, 200000, 255168]
 
-        # Final analysis
-        await self._output("\n" * 14)  # Clear space
-        await self._output("GAMES ANALYZED: 255,168\n")
+        for count in game_counts:
+            await self._output(f"  Games analyzed: {count:,}...\n")
+            await asyncio.sleep(0.15)
+
+        await self._output("\n" + "=" * 50 + "\n")
+        await self._output("ANALYSIS COMPLETE\n")
+        await self._output("=" * 50 + "\n\n")
         await asyncio.sleep(0.3)
-        await self._output("OPTIMAL GAMES END IN DRAW: 100%\n")
+        await self._output("TOTAL GAMES ANALYZED: 255,168\n")
         await asyncio.sleep(0.3)
-        await self._output("POSSIBLE WINNER: NONE\n\n")
+        await self._output("OPTIMAL PLAY RESULTS IN: DRAW\n")
+        await asyncio.sleep(0.3)
+        await self._output("POSSIBLE WINNER WITH OPTIMAL PLAY: NONE\n\n")
         await asyncio.sleep(1.0)

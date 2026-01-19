@@ -21,9 +21,10 @@ GLOBAL THERMONUCLEAR WAR
 Select targets for nuclear strikes.
 Commands:
   LIST [US/USSR]  - List available targets
-  TARGET <name>   - Select a target
+  TARGET <name>   - Select a target (e.g. TARGET MOSCOW)
   LAUNCH          - Execute strike
   STATUS          - Show current status
+  HINT            - Get gameplay suggestions
   ABORT           - Abort mission
   QUIT            - Exit game
 
@@ -137,6 +138,30 @@ Target types: CITY, MILITARY, INDUSTRIAL
             await self.play_sound("defcon_change")
 
         return True
+
+    async def _show_hint(self) -> None:
+        """Show a helpful hint for gameplay."""
+        enemy = "USSR" if self._player_side == "US" else "US"
+
+        if not self._selected_targets:
+            # Suggest listing and targeting
+            sample_targets = self._targets.get_targets_by_type("CITY", enemy)[:3]
+            await self.output("\n=== HINT ===\n")
+            await self.output("1. Type LIST to see available enemy targets\n")
+            await self.output("2. Target cities by name, for example:\n")
+            for t in sample_targets:
+                await self.output(f"   TARGET {t.name}\n")
+            await self.output("3. When ready, type LAUNCH to execute strike\n")
+            await self.output("============\n")
+        else:
+            # They have targets, suggest launch or more targets
+            await self.output("\n=== HINT ===\n")
+            await self.output(f"You have {len(self._selected_targets)} target(s) selected.\n")
+            await self.output("Options:\n")
+            await self.output("  - Type LAUNCH to execute the strike\n")
+            await self.output("  - Type LIST to see more targets\n")
+            await self.output("  - Type STATUS to review your selections\n")
+            await self.output("============\n")
 
     async def _execute_launch(self) -> dict[str, Any]:
         """Execute the nuclear strike."""
@@ -283,7 +308,11 @@ Target types: CITY, MILITARY, INDUSTRIAL
             elif cmd == "HELP":
                 await self.show_instructions()
 
+            elif cmd == "HINT":
+                await self._show_hint()
+
             else:
                 await self.output("COMMAND NOT RECOGNIZED\n")
+                await self.output("(Type HELP for commands or HINT for suggestions)\n")
 
         return {"result": GameResult.QUIT, "trigger_learning": False}
