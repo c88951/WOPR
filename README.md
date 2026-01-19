@@ -23,13 +23,14 @@ A faithful Python recreation of the WOPR computer system from the 1983 film **Wa
 This project recreates the iconic WOPR supercomputer from the 1983 film WarGames. Experience the complete narrative - from dialing in via modem to discovering that the only winning move is not to play.
 
 **Features:**
-- Authentic modem dial-up sequence with connection animation
-- Movie-accurate login system with the famous backdoor
+- Authentic modem dial-up sequence with sound effects
+- Movie-accurate login system (password: **joshua**)
 - All 15 games from WOPR's original list, fully playable
 - Global Thermonuclear War simulation with world map and missile animations
 - The complete "learning" sequence with tic-tac-toe
 - Period-accurate green phosphor terminal aesthetics
 - Optional text-to-speech for WOPR's voice
+- Synthesized retro sound effects (modem, explosions, etc.)
 - Hidden help system for newcomers (doesn't break immersion for fans)
 
 ---
@@ -266,16 +267,20 @@ WOPR/
 │   ├── core/
 │   │   ├── state.py        # State machine
 │   │   ├── voice.py        # Text-to-speech
-│   │   └── audio.py        # Sound effects
+│   │   └── audio.py        # Sound effects (pygame/simpleaudio)
 │   ├── narrative/
 │   │   ├── dialup.py       # Modem sequence
-│   │   ├── login.py        # Authentication
+│   │   ├── login.py        # Authentication ("joshua" backdoor)
 │   │   ├── dialogue.py     # WOPR responses
 │   │   └── sequences.py    # Story flow
 │   ├── ui/
 │   │   ├── terminal.py     # Green phosphor styling
 │   │   ├── widgets.py      # Custom UI components
 │   │   └── animations.py   # Text effects
+│   ├── assets/
+│   │   ├── sounds/         # WAV sound effects
+│   │   ├── maps/           # ASCII world maps
+│   │   └── data/           # Game data (targets, dialogue)
 │   └── games/
 │       ├── base.py         # Base game class
 │       ├── maze.py         # Falken's Maze
@@ -288,7 +293,7 @@ WOPR/
 ### Running Tests
 ```bash
 pip3 install -e ".[dev]"
-python -m pytest tests/ -v
+python3 -m pytest tests/ -v
 ```
 
 ---
@@ -303,18 +308,23 @@ python -m pytest tests/ -v
 textual >= 0.50.0      # TUI framework
 rich >= 13.0.0         # Text formatting
 python-chess >= 1.10   # Chess engine
-pyttsx3 >= 2.90        # Text-to-speech (optional)
+pyttsx3 >= 2.90        # Text-to-speech
 ```
 
-### Optional
-```
-simpleaudio >= 1.0.4   # Sound effects
-```
-
-Install with audio support:
+### Audio Support (Recommended)
 ```bash
 pip3 install -e ".[audio]"
 ```
+
+This installs `pygame` for sound effects. The game includes synthesized WAV files:
+- **Modem dial** - Authentic DTMF tones and dial sequence
+- **Modem connect** - Classic modem handshake screech
+- **Terminal beep** - Soft notification sound
+- **Typing** - Keystroke clicks
+- **Missile launch** - Whoosh and rumble
+- **Explosion** - Deep boom
+
+Sound is optional - the game works fine without it (`--no-sound`).
 
 ---
 

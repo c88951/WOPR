@@ -50,7 +50,8 @@ dev = [
 wopr = "wopr.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/wopr-project/wopr"
+Homepage = "https://github.com/c88951/WOPR"
+Repository = "https://github.com/c88951/WOPR"
 
 [tool.hatch.build.targets.wheel]
 packages = ["wopr"]
