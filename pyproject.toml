@@ -36,6 +36,9 @@ dependencies = [
 
 [project.optional-dependencies]
 audio = [
+    "pygame>=2.0.0",
+]
+audio-alt = [
     "simpleaudio>=1.0.4",
 ]
 dev = [
