@@ -140,8 +140,10 @@ class WOPRApp(App):
         input_widget = self.query_one("#command-input", Input)
         input_widget.value = ""
 
-        # Wait for UI to be ready, then focus
-        self.call_after_refresh(input_widget.focus)
+        # Ensure UI is ready and focus the input
+        self.refresh()
+        await asyncio.sleep(0.05)
+        input_widget.focus()
 
         # Wait for input submission
         await self._pending_input.wait()
@@ -157,6 +159,9 @@ class WOPRApp(App):
 
     async def _run_narrative(self) -> None:
         """Run the main narrative flow."""
+        # Wait for UI to be fully ready
+        await asyncio.sleep(0.1)
+
         # Initialize narrative sequences
         typing_speed = (
             0 if not self._config.display.animations
