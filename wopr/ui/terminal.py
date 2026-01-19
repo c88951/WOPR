@@ -125,6 +125,28 @@ class TerminalStyle:
             dock: top;
             height: 3;
         }}
+
+        #input-container {{
+            background: {self.background};
+            dock: bottom;
+            height: 1;
+            width: 100%;
+        }}
+
+        #prompt {{
+            background: {self.background};
+            color: {self.bright};
+            width: auto;
+            min-width: 2;
+        }}
+
+        #command-input {{
+            background: {self.background};
+            color: {self.bright};
+            border: none;
+            width: 1fr;
+            height: 1;
+        }}
         """
 
 

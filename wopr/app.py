@@ -1,7 +1,7 @@
 """Main WOPR Textual application."""
 
 from textual.app import App, ComposeResult
-from textual.containers import Container, Vertical, ScrollableContainer
+from textual.containers import Container, Horizontal, VerticalScroll
 from textual.widgets import Static, Input
 from textual.binding import Binding
 from textual import events
@@ -88,11 +88,11 @@ class WOPRApp(App):
             f"  {APP_TITLE}\n  NORAD COMPUTER SYSTEM",
             id="header"
         )
-        yield ScrollableContainer(
+        yield VerticalScroll(
             Static("", id="terminal-output"),
             id="main-content"
         )
-        yield Container(
+        yield Horizontal(
             Static("> ", id="prompt"),
             Input(id="command-input", classes="terminal-input"),
             id="input-container"
@@ -121,7 +121,7 @@ class WOPRApp(App):
         output_widget.update(full_text)
 
         # Auto-scroll to bottom
-        scroll_container = self.query_one("#main-content", ScrollableContainer)
+        scroll_container = self.query_one("#main-content", VerticalScroll)
         scroll_container.scroll_end(animate=False)
 
     async def _clear_output(self) -> None:

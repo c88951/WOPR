@@ -65,9 +65,11 @@ class NarrativeSequences:
         return attempt.result
 
     async def run_greeting(self) -> None:
-        """Run the greeting sequence after successful login."""
-        await asyncio.sleep(0.5)
-        await self._dialogue.say("greeting")
+        """Run the greeting sequence after successful login.
+
+        Note: The greeting itself is already output by attempt_login(),
+        so we only output the 'play_game' prompt here.
+        """
         await asyncio.sleep(0.5)
         await self._dialogue.say("play_game")
 
