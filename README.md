@@ -51,6 +51,12 @@ pip3 install -e ".[audio]"
 python3 -m wopr
 ```
 
+### Playing
+
+1. **Title Screen**: Press **Enter** to connect
+2. **Login**: When you see `LOGON:`, enter **joshua**
+3. **Game Selection**: Type a game name, number (1-15), or `LIST` to see all games
+
 ### The Login
 
 When you see `LOGON:`, enter `joshua` to access the system.
@@ -229,7 +235,23 @@ screen_reader_mode = false
 
 ## Building with Claude Code
 
-This entire project was built using [Claude Code](https://claude.ai/claude-code). You can recreate or extend it yourself:
+This entire project was built using [Claude Code](https://claude.ai/claude-code). You can recreate or extend it yourself.
+
+### For Claude Instances Rebuilding This Project
+
+**Key Technical Details:**
+- **Framework**: Textual TUI (async-based terminal UI)
+- **Audio**: pygame (preferred) or simpleaudio for WAV playback
+- **Voice**: pyttsx3 for text-to-speech
+- **Chess AI**: python-chess library
+- **Config**: TOML files with tomli/tomllib
+
+**Critical Implementation Notes:**
+1. Input handling uses `@on(Input.Submitted)` decorator with asyncio.Event for waiting
+2. Use `call_after_refresh()` before focusing input widgets to avoid race conditions
+3. Audio manager tries pygame first, falls back to simpleaudio
+4. All games inherit from a base Game class with async play() method
+5. Sound files are synthesized WAVs (numpy/scipy) - no external audio files needed
 
 ### Setup
 1. Install Claude Code CLI
@@ -238,19 +260,20 @@ This entire project was built using [Claude Code](https://claude.ai/claude-code)
 
 ### The Original Prompt
 
-The project was built from a detailed specification. To recreate or extend it, you can give Claude Code a prompt like:
+The project was built from a detailed specification. To recreate or extend it:
 
 ```
 Create a Python terminal application that recreates the WOPR computer
 from WarGames (1983). Include:
 
-- Modem dial-up sequence with animations
+- Modem dial-up sequence with animations and sound effects
 - Login system with "joshua" backdoor
 - All 15 games from the film's game list
 - Global Thermonuclear War with world map and missile animations
 - The learning sequence where WOPR plays tic-tac-toe
 - Green phosphor terminal aesthetics using Textual
 - Optional voice synthesis with pyttsx3
+- Sound effects using pygame
 
 The narrative should flow from dial-in through the famous
 "the only winning move is not to play" conclusion.
@@ -295,6 +318,14 @@ WOPR/
 pip3 install -e ".[dev]"
 python3 -m pytest tests/ -v
 ```
+
+### Regenerating Sound Effects
+The WAV files in `wopr/assets/sounds/` were synthesized using numpy/scipy. To regenerate:
+```bash
+pip3 install numpy scipy
+python3 generate_sounds.py
+```
+This creates all sound effects programmatically (no external audio sources needed).
 
 ---
 
