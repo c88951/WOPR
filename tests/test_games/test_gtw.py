@@ -128,18 +128,22 @@ class TestWorldMap:
         assert len(rendered) > 0
         assert "GLOBAL THERMONUCLEAR WAR" in rendered
 
-    def test_map_markers(self):
-        """Test map markers."""
+    def test_map_missiles(self):
+        """Test map missile functionality."""
         world_map = WorldMap()
 
-        world_map.add_marker(10, 5, "*")
-        world_map.add_marker(20, 10, "X")
+        # Add a missile
+        missile = world_map.add_missile("US_CENTER", "MOSCOW", side="US")
+        assert missile is not None
+        assert len(world_map._missiles) == 1
 
-        # Markers are stored
-        assert len(world_map._markers) == 2
+        # Advance missiles
+        world_map.advance_all()
+        assert world_map.has_active_missiles()
 
-        world_map.clear_markers()
-        assert len(world_map._markers) == 0
+        # Clear missiles
+        world_map.clear_missiles()
+        assert len(world_map._missiles) == 0
 
 
 @pytest.mark.asyncio

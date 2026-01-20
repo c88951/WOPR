@@ -158,4 +158,7 @@ async def test_learning_demonstration():
     full_output = "".join(output)
     assert "ANALYZING" in full_output
     assert "GAMES ANALYZED" in full_output
-    assert "WINNER: NONE" in full_output or "POSSIBLE WINNER: NONE" in full_output
+    # Check for conclusion about no winner with optimal play
+    assert ("WINNER: NONE" in full_output or
+            "POSSIBLE WINNER: NONE" in full_output or
+            "POSSIBLE WINNER WITH OPTIMAL PLAY: NONE" in full_output)
