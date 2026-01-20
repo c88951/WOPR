@@ -58,8 +58,8 @@ If you prefer to install manually:
 ```bash
 git clone https://github.com/c88951/WOPR.git
 cd WOPR
-pip3 install textual rich python-chess pyttsx3  # Required
-pip3 install pygame                              # Optional: for sound effects
+pip3 install textual rich python-chess pyttsx3 drawille  # Required
+pip3 install pygame                                       # Optional: for sound effects
 python3 -m wopr
 ```
 
@@ -215,7 +215,19 @@ WHICH SIDE DO YOU WANT?
 - `TARGET <name>` - Select a target (e.g., `TARGET MOSCOW`)
 - `STATUS` - Show current game state
 - `LAUNCH` - Execute nuclear strike
+- `HINT` - Get gameplay suggestions
 - `ABORT` - Abort mission
+
+### Visual Features
+
+The GTW simulation includes movie-accurate visuals inspired by the NORAD display in WarGames:
+
+- **Braille Missile Arcs** - High-resolution curved trajectories rendered using Drawille braille characters (Unicode block 0x2800-0x28FF), providing 2x4 subpixel resolution per character cell
+- **Red Missile Trails** - Missile arcs and trajectories displayed in red using Textual markup
+- **Red Impact Markers** - Bold red "X" characters mark nuclear strike locations on the map
+- **Single-Map Animation** - Missiles animate smoothly on a single world map (screen clears between frames) rather than stacking multiple maps
+- **Arc Space** - Extra vertical space above the map ensures full missile arc trajectories are visible, just like the NORAD display showing arcs from launch to impact
+- **Escalating Warfare** - After your initial strike, the enemy retaliates, leading to escalating waves of missiles with increasing speed
 
 After the simulation concludes with "WINNER: NONE", WOPR demonstrates through tic-tac-toe that some games cannot be won.
 
@@ -263,6 +275,7 @@ This entire project was built using [Claude Code](https://claude.ai/claude-code)
 - **Voice**: pyttsx3 for text-to-speech
 - **Chess AI**: python-chess library
 - **Config**: TOML files with tomli/tomllib
+- **GTW Graphics**: Drawille library for braille-based missile arc rendering
 
 **Critical Implementation Notes:**
 
@@ -350,6 +363,43 @@ This entire project was built using [Claude Code](https://claude.ai/claude-code)
 6. All games inherit from a base Game class with async `play()` method
 7. Sound files are synthesized WAVs (numpy/scipy) - no external audio files needed
 8. Use `VerticalScroll` for main content, `Horizontal` for input container
+
+9. **Global Thermonuclear War - Drawille Implementation** (CRITICAL for missile visuals):
+   ```python
+   # The GTW game uses Drawille for high-resolution braille missile arcs
+   # Key concepts:
+
+   # 1. Coordinate System with Arc Space
+   Y_OFFSET = 32      # Pixels to shift coordinates down
+   ARC_ROWS = 8       # Character rows above map for arc display
+   CANVAS_HEIGHT = 128  # Extended canvas height (was 96)
+
+   # 2. All city LOCATIONS have Y coordinates shifted by Y_OFFSET
+   # This leaves room for missile arcs to render above the map
+   "MOSCOW": (110, 44),  # Original y=12, shifted by 32
+
+   # 3. Drawille canvas.frame() alignment issue (CRITICAL)
+   # canvas.frame() only returns rows WITH content, starting from min_y
+   # NOT from row 0. You MUST track min_y and offset the overlay:
+   min_y_pixel = track_minimum_y_while_drawing()
+   min_y_char = min_y_pixel // 4
+   for dy, dline in enumerate(drawille_lines):
+       actual_row = dy + min_y_char  # Apply offset!
+       colored_content[(dx, actual_row)] = f'[red]{dchar}[/red]'
+
+   # 4. Textual markup escaping (NOT like Rich)
+   # Textual uses \[ to escape brackets, not [[
+   # Be careful with ASCII art containing backslashes near markup
+   if char == '[':
+       output_chars.append('\\[')
+
+   # 5. Single-map animation via clear_callback
+   # Pass clear_callback to game, call before each frame render
+   if self._clear:
+       await self._clear()
+   frame = war_map.render_frame()
+   await self.output(frame)
+   ```
 
 ### Setup
 1. Install Claude Code CLI
@@ -496,6 +546,7 @@ textual >= 0.50.0      # TUI framework
 rich >= 13.0.0         # Text formatting
 python-chess >= 1.10   # Chess engine
 pyttsx3 >= 2.90        # Text-to-speech
+drawille >= 0.2.0      # Braille graphics for missile arcs
 pygame >= 2.0.0        # Audio support (optional)
 ```
 

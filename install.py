@@ -19,6 +19,7 @@ REQUIRED_PACKAGES = {
     "rich": "13.0.0",
     "python-chess": "1.10",
     "pyttsx3": "2.90",
+    "drawille": "0.2.0",  # Braille graphics for GTW missile arcs
 }
 
 # Optional packages for audio support
@@ -202,12 +203,12 @@ def main():
                 print("\n[OK] Required packages installed successfully!")
             else:
                 print("\n[!] Some packages failed to install.")
-                print("    Try running: pip3 install textual rich python-chess pyttsx3")
+                print("    Try running: pip3 install textual rich python-chess pyttsx3 drawille")
                 sys.exit(1)
         else:
             print("\nInstallation cancelled.")
             print("To install manually, run:")
-            print("  pip3 install textual rich python-chess pyttsx3")
+            print("  pip3 install textual rich python-chess pyttsx3 drawille")
             sys.exit(0)
 
     if not has_audio:

@@ -6,7 +6,7 @@ import random
 
 from ...base import BaseGame, GameResult
 from .targets import TargetDatabase, Target
-from .map import WorldMap
+from .drawille_map import DrawilleWarMap, DrawilleWarAnimator
 from .simulation import WarSimulation
 
 
@@ -37,15 +37,17 @@ Target types: CITY, MILITARY, INDUSTRIAL
         input_callback: Callable[[], Awaitable[str]],
         voice=None,
         audio=None,
+        clear_callback: Callable[[], Awaitable[None]] | None = None,
     ) -> None:
         super().__init__(output_callback, input_callback, voice, audio)
         self._targets = TargetDatabase()
-        self._map = WorldMap()
+        self._map = DrawilleWarMap()
         self._simulation = WarSimulation()
         self._player_side = ""
         self._selected_targets: list[Target] = []
         self._defcon = 5
         self._launched = False
+        self._clear = clear_callback
 
     async def _show_side_selection(self) -> str | None:
         """Show side selection menu."""
@@ -164,81 +166,123 @@ Target types: CITY, MILITARY, INDUSTRIAL
             await self.output("============\n")
 
     async def _execute_launch(self) -> dict[str, Any]:
-        """Execute the nuclear strike."""
+        """Execute the nuclear strike with escalating Drawille animation."""
         if not self._selected_targets:
             await self.output("NO TARGETS SELECTED\n")
             return {"launched": False}
 
         self._launched = True
-        await self.output("\n" + "=" * 50 + "\n")
-        await self.output("        *** LAUNCH SEQUENCE INITIATED ***\n")
-        await self.output("=" * 50 + "\n\n")
+        await self.output("\n" + "=" * 60 + "\n")
+        await self.output("           *** LAUNCH SEQUENCE INITIATED ***\n")
+        await self.output("=" * 60 + "\n\n")
         await self.play_sound("missile_launch")
 
         # Set DEFCON to 1
         self._defcon = 1
         await self.output("DEFCON 1 - MAXIMUM READINESS\n\n")
-
-        # Show world map with attack
-        await self.output(self._map.render() + "\n")
-
-        # Animate missile launches
-        await self.output("MISSILES LAUNCHED:\n")
-        for target in self._selected_targets:
-            await self.output(f"  -> {target.name}...")
-            await asyncio.sleep(0.3)
-            await self.output(" AWAY\n")
-            await self.play_sound("missile_launch")
-
         await asyncio.sleep(1.0)
 
-        # Calculate casualties
-        total_casualties = 0
-        await self.output("\n*** IMPACT REPORTS ***\n\n")
+        # Create new map and animator for the war sequence
+        war_map = DrawilleWarMap()
+        animator = DrawilleWarAnimator(war_map)
 
-        for target in self._selected_targets:
-            await asyncio.sleep(0.5)
-            casualties = target.population if target.target_type == "CITY" else random.randint(1000, 50000)
-            total_casualties += casualties
-            await self.output(f"IMPACT: {target.name}\n")
-            await self.output(f"  ESTIMATED CASUALTIES: {casualties:,}\n")
-            await self.play_sound("explosion")
+        # Determine sides
+        player_side = self._player_side
+        enemy_side = "USSR" if player_side == "US" else "US"
 
-        # Enemy retaliation
-        await asyncio.sleep(1.0)
-        await self.output("\n*** ENEMY RETALIATION DETECTED ***\n\n")
+        # Escalation waves: player starts with 1, enemy responds with 2, etc.
+        escalation = [
+            (player_side, 1),   # Player: 1 missile
+            (enemy_side, 2),    # Enemy: 2 missiles
+            (player_side, 3),   # Player: 3 missiles
+            (enemy_side, 4),    # Enemy: 4 missiles
+            (player_side, 5),   # Player: 5 missiles
+            (enemy_side, 6),    # Enemy: 6 missiles
+        ]
 
-        enemy_targets = self._targets.get_targets_for_side(self._player_side)
-        retaliation_targets = random.sample(
-            [t for t in enemy_targets if t.target_type == "CITY"],
-            min(len(self._selected_targets) + 2, len(enemy_targets))
-        )
+        # Base timing values - will get faster each wave
+        base_announce_delay = 0.4
+        base_frame_delay = 0.10
+        base_step = 0.10
+        base_impact_delay = 0.08
 
-        retaliation_casualties = 0
-        for target in retaliation_targets:
-            await asyncio.sleep(0.3)
-            casualties = target.population
-            retaliation_casualties += casualties
-            await self.output(f"INCOMING: {target.name} - {casualties:,} casualties\n")
+        for wave_num, (side, count) in enumerate(escalation):
+            # Each wave is 40% faster than the previous (speed multiplier)
+            speed_mult = 1.0 / (1.4 ** wave_num)
+            announce_delay = base_announce_delay * speed_mult
+            frame_delay = max(0.03, base_frame_delay * speed_mult)
+            step = min(0.25, base_step / speed_mult)  # Bigger steps = faster missiles
+            impact_delay = max(0.02, base_impact_delay * speed_mult)
 
-        # Final tally
-        await asyncio.sleep(1.0)
-        await self.output("\n" + "=" * 50 + "\n")
-        await self.output("           *** FINAL ASSESSMENT ***\n")
-        await self.output("=" * 50 + "\n\n")
+            # Announce the wave
+            if side == player_side:
+                if wave_num == 0:
+                    await self.output(f"*** {side} LAUNCHES FIRST STRIKE ***\n\n")
+                else:
+                    await self.output(f"\n*** {side} COUNTER-STRIKE: {count} MISSILES ***\n\n")
+            else:
+                await self.output(f"\n*** {side} RETALIATION: {count} MISSILES ***\n\n")
 
-        await self.output(f"ENEMY CASUALTIES: {total_casualties:,}\n")
-        await self.output(f"YOUR CASUALTIES:  {retaliation_casualties:,}\n")
-        await self.output(f"TOTAL DEATHS:     {total_casualties + retaliation_casualties:,}\n\n")
+            await asyncio.sleep(announce_delay)
 
-        # The conclusion
-        await asyncio.sleep(2.0)
+            # Launch missiles
+            wave_results = animator.launch_wave(side, count)
+
+            # Show what's being targeted
+            for target_name, casualties in wave_results:
+                await self.output(f"  TARGETING: {target_name}\n")
+
+            await asyncio.sleep(announce_delay * 0.5)
+
+            # Animate the missiles flying - update in place if clear_callback available
+            frames_shown = 0
+            max_frames = int(25 * speed_mult) + 5  # Fewer frames as speed increases
+            while war_map.has_active_animations():
+                # Clear and redraw for single-map animation effect
+                if self._clear:
+                    await self._clear()
+                frame = war_map.render_frame()
+                await self.output(frame + "\n")
+                war_map.advance(step=step)
+                await asyncio.sleep(frame_delay)
+                frames_shown += 1
+                if frames_shown > max_frames:
+                    # Force complete any remaining missiles
+                    for m in war_map.missiles:
+                        m.progress = 1.0
+                    break
+
+            # Show impacts
+            await self.output("\n*** IMPACTS ***\n")
+            for target_name, casualties in wave_results:
+                await self.output(f"  {target_name}: {casualties:,} casualties\n")
+                await self.play_sound("explosion")
+                await asyncio.sleep(impact_delay)
+
+            await asyncio.sleep(announce_delay)
+
+        # Final tally - normal speed, no long pauses
+        await asyncio.sleep(0.3)
+        await self.output("\n" + "=" * 60 + "\n")
+        await self.output("              *** FINAL ASSESSMENT ***\n")
+        await self.output("=" * 60 + "\n\n")
+
+        enemy_cas = animator.ussr_casualties if player_side == 'US' else animator.us_casualties
+        player_cas = animator.us_casualties if player_side == 'US' else animator.ussr_casualties
+        total = animator.us_casualties + animator.ussr_casualties
+
+        await self.output(f"  {enemy_side} CASUALTIES: {enemy_cas:,}\n")
+        await self.output(f"  {player_side} CASUALTIES: {player_cas:,}\n")
+        await self.output(f"\n  TOTAL DEATHS: {total:,}\n\n")
+
+        # The conclusion - brief dramatic pause only
+        await asyncio.sleep(0.5)
         await self.output("\n")
-        await self.output("╔═══════════════════════════════════════╗\n")
-        await self.output("║                                       ║\n")
-        await self.output("║           WINNER: NONE                ║\n")
-        await self.output("║                                       ║\n")
-        await self.output("╚═══════════════════════════════════════╝\n")
+        await self.output("+---------------------------------------+\n")
+        await self.output("|                                       |\n")
+        await self.output("|           WINNER: NONE                |\n")
+        await self.output("|                                       |\n")
+        await self.output("+---------------------------------------+\n")
         await self.output("\n")
 
         self.speak("Winner: None")
@@ -246,8 +290,8 @@ Target types: CITY, MILITARY, INDUSTRIAL
         return {
             "result": GameResult.NONE,
             "trigger_learning": True,
-            "player_casualties": retaliation_casualties,
-            "enemy_casualties": total_casualties,
+            "player_casualties": animator.us_casualties if player_side == "US" else animator.ussr_casualties,
+            "enemy_casualties": animator.ussr_casualties if player_side == "US" else animator.us_casualties,
         }
 
     async def play(self) -> dict[str, Any]:
@@ -265,7 +309,7 @@ Target types: CITY, MILITARY, INDUSTRIAL
         await self.output(f"ENEMY: {enemy}\n\n")
 
         # Show initial map
-        await self.output(self._map.render() + "\n")
+        await self.output(self._map.render_static() + "\n")
 
         self._running = True
         while self._running:
@@ -303,7 +347,7 @@ Target types: CITY, MILITARY, INDUSTRIAL
                         await self.output("LAUNCH CANCELLED\n")
 
             elif cmd == "MAP":
-                await self.output(self._map.render() + "\n")
+                await self.output(self._map.render_static() + "\n")
 
             elif cmd == "HELP":
                 await self.show_instructions()

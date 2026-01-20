@@ -95,8 +95,10 @@ class WOPRApp(App):
             id="header"
         )
         # Disable focus on scroll container - mouse clicks were stealing focus from Input
+        # markup=True - Rich markup for colored missile trails
+        # Special chars in ASCII map are escaped in drawille_map.py
         scroll = VerticalScroll(
-            Static("", id="terminal-output"),
+            Static("", id="terminal-output", markup=True),
             id="main-content"
         )
         scroll.can_focus = False
@@ -131,14 +133,24 @@ class WOPRApp(App):
 
     async def _output(self, text: str) -> None:
         """Output text to the terminal."""
-        output_widget = self.query_one("#terminal-output", Static)
-        self._output_buffer.append(text)
-        full_text = "".join(self._output_buffer)
-        output_widget.update(full_text)
+        try:
+            output_widget = self.query_one("#terminal-output", Static)
+            self._output_buffer.append(text)
+            full_text = "".join(self._output_buffer)
+            output_widget.update(full_text)
 
-        # Auto-scroll to bottom
-        scroll_container = self.query_one("#main-content", VerticalScroll)
-        scroll_container.scroll_end(animate=False)
+            # Auto-scroll to bottom
+            scroll_container = self.query_one("#main-content", VerticalScroll)
+            scroll_container.scroll_end(animate=False)
+        except Exception as e:
+            # Log any errors to debug file
+            import traceback
+            with open("/tmp/wopr_output_error.log", "a") as f:
+                f.write(f"OUTPUT ERROR: {type(e).__name__}: {e}\n")
+                f.write(f"Text was: {repr(text[:200])}\n")
+                traceback.print_exc(file=f)
+                f.write("\n")
+            raise
 
     async def _clear_output(self) -> None:
         """Clear the terminal output."""
@@ -379,13 +391,21 @@ class WOPRApp(App):
         """Play Global Thermonuclear War."""
         from .games.military.thermonuclear_war import GlobalThermonuclearWar
 
-        game = GlobalThermonuclearWar(
-            output_callback=self._output,
-            input_callback=self._get_input,
-            voice=self._voice,
-            audio=self._audio
-        )
-        result = await game.play()
+        try:
+            game = GlobalThermonuclearWar(
+                output_callback=self._output,
+                input_callback=self._get_input,
+                voice=self._voice,
+                audio=self._audio,
+                clear_callback=self._clear_output,
+            )
+            result = await game.play()
+        except Exception as e:
+            import traceback
+            with open("/tmp/wopr_gtw_error.log", "w") as f:
+                f.write(f"GTW ERROR: {type(e).__name__}: {e}\n\n")
+                traceback.print_exc(file=f)
+            raise
 
         # After GTW, trigger learning sequence
         if result.get("trigger_learning", True):
